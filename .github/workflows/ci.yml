@@ -1,0 +1,58 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  qualite:
+    name: Types, style et tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm run lint
+      - name: Tests, liste légitime entière comprise
+        run: npm run test:complet
+
+  generation-deterministe:
+    name: Génération déterministe de la liste
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - name: Deux générations sur la même source doivent coïncider
+        run: |
+          npm run genere:domaines
+          cp src/donnees/domaines-legitimes.txt /tmp/premiere-generation.txt
+          npm run genere:domaines
+          diff /tmp/premiere-generation.txt src/donnees/domaines-legitimes.txt
+
+  extension:
+    name: Empaquetage Chrome et Firefox
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - run: npm run build:all
+      - name: Validation du paquet Firefox
+        run: npx web-ext lint --source-dir=dist/firefox --self-hosted
+      - uses: actions/upload-artifact@v7
+        with:
+          name: extension
+          path: dist/
+          retention-days: 14

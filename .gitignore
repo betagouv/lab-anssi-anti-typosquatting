@@ -14,3 +14,6 @@ donnees-sources/
 .vscode/
 .DS_Store
 *.log
+
+# Profil Firefox de développement (snap ne peut pas lire /tmp)
+profil-firefox-dev/

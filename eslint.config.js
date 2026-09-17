@@ -3,7 +3,13 @@ import tseslint from "typescript-eslint";
 
 export default tseslint.config(
   {
-    ignores: ["dist/**", "node_modules/**", "db.js", "data/**", "db-management/**", "lib/**"],
+    ignores: [
+      "dist/**",
+      "node_modules/**",
+      "donnees-sources/**",
+      "profil-firefox-dev/**",
+      "web-ext-artifacts/**",
+    ],
   },
   js.configs.recommended,
   tseslint.configs.recommendedTypeChecked,

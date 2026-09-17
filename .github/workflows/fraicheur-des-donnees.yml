@@ -1,0 +1,32 @@
+name: Fraîcheur de la liste légitime
+
+# Le jeu de données etalab évolue. Ce contrôle est hebdomadaire plutôt que
+# rattaché aux pull requests, pour qu'une mise à jour en amont ne fasse jamais
+# échouer une modification sans rapport.
+on:
+  schedule:
+    - cron: "0 6 * * 1"
+  workflow_dispatch:
+
+jobs:
+  ecart:
+    name: Écart avec le jeu de données publié
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - run: npm run genere:domaines
+      - name: Signaler un écart
+        run: |
+          if git diff --quiet -- src/donnees/domaines-legitimes.txt; then
+            echo "La liste versionnée est à jour."
+            exit 0
+          fi
+          ajouts=$(git diff --numstat -- src/donnees/domaines-legitimes.txt | cut -f1)
+          retraits=$(git diff --numstat -- src/donnees/domaines-legitimes.txt | cut -f2)
+          echo "::warning::La liste légitime a dérivé : $ajouts ajouts, $retraits retraits. Lancer npm run genere:domaines et committer."
+          exit 1
