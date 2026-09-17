@@ -1,3 +1,5 @@
+import { squelette } from "./confusables.ts";
+import { normaliseLeNomDHote } from "./normalisation.ts";
 import { indexeLeDomaine, type DomaineIndexe } from "./score.ts";
 
 const RATIO_MINIMAL_DE_BIGRAMMES_PARTAGES = 0.5;
@@ -6,7 +8,24 @@ const ECART_DE_LONGUEUR_MAXIMAL = 4;
 export interface IndexDeRecherche {
   readonly domainesIndexes: readonly DomaineIndexe[];
   readonly positionsParBigramme: ReadonlyMap<string, readonly number[]>;
+  readonly domaines: ReadonlySet<string>;
+  readonly parEtiquette: ReadonlyMap<string, readonly string[]>;
+  readonly parSquelette: ReadonlyMap<string, readonly string[]>;
+  readonly parEtiquetteSansSeparateurs: ReadonlyMap<string, readonly string[]>;
 }
+
+export const sansSeparateurs = (etiquette: string): string =>
+  etiquette.replaceAll("-", "");
+
+const ajoute = (
+  table: Map<string, string[]>,
+  cle: string,
+  domaine: string,
+): void => {
+  const domaines = table.get(cle);
+  if (domaines === undefined) table.set(cle, [domaine]);
+  else domaines.push(domaine);
+};
 
 export const construisLIndexDeRecherche = (
   domaines: readonly string[],
@@ -22,7 +41,31 @@ export const construisLIndexDeRecherche = (
     }
   });
 
-  return { domainesIndexes, positionsParBigramme };
+  const parEtiquette = new Map<string, string[]>();
+  const parSquelette = new Map<string, string[]>();
+  const parEtiquetteSansSeparateurs = new Map<string, string[]>();
+
+  for (const domaine of domaines) {
+    const normalise = normaliseLeNomDHote(domaine);
+    if (normalise === null) continue;
+
+    ajoute(parEtiquette, normalise.etiquette, domaine);
+    ajoute(parSquelette, squelette(normalise.etiquette), domaine);
+    ajoute(
+      parEtiquetteSansSeparateurs,
+      sansSeparateurs(normalise.etiquette),
+      domaine,
+    );
+  }
+
+  return {
+    domainesIndexes,
+    positionsParBigramme,
+    domaines: new Set(domaines),
+    parEtiquette,
+    parSquelette,
+    parEtiquetteSansSeparateurs,
+  };
 };
 
 export const chercheLesCandidats = (

@@ -1,6 +1,7 @@
 import { parse } from "tldts";
 
 export interface DomaineNormalise {
+  readonly nomDHote: string;
   readonly domaineEnregistrable: string;
   readonly etiquette: string;
   readonly suffixe: string;
@@ -33,6 +34,7 @@ export const normaliseLeNomDHote = (
   }
 
   return {
+    nomDHote: canonique,
     domaineEnregistrable: domain,
     etiquette: domainWithoutSuffix,
     suffixe: publicSuffix,

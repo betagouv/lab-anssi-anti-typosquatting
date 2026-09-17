@@ -6,6 +6,7 @@ export interface Typosquat {
   readonly domaineSuspect: string;
   readonly domaineImite: string;
   readonly classe: string;
+  readonly severite: string;
 }
 
 const contenuDu = (nomDuFichier: string): string =>
@@ -16,25 +17,32 @@ export const litUnJeuDeDomaines = (nomDuFichier: string): string[] =>
 
 export const litLesTyposquats = (nomDuFichier: string): Typosquat[] =>
   litLaListeDeDomaines(contenuDu(nomDuFichier)).map((ligne) => {
-    const [domaineSuspect, domaineImite, classe] = ligne
+    const [domaineSuspect, domaineImite, classe, severite] = ligne
       .split("|")
       .map((champ) => champ.trim());
 
     if (
       domaineSuspect === undefined ||
       domaineImite === undefined ||
-      classe === undefined
+      classe === undefined ||
+      severite === undefined
     ) {
       throw new Error(`Ligne de typosquat mal formée : ${ligne}`);
     }
 
-    return { domaineSuspect, domaineImite, classe };
+    return { domaineSuspect, domaineImite, classe, severite };
   });
 
-export const listeLegitime = (): string[] =>
+const litUneListeDeLApplication = (nomDuFichier: string): string[] =>
   litLaListeDeDomaines(
     readFileSync(
-      new URL("../../src/donnees/domaines-legitimes.txt", import.meta.url),
+      new URL(`../../src/donnees/${nomDuFichier}`, import.meta.url),
       "utf-8",
     ),
   );
+
+export const listeLegitime = (): string[] =>
+  litUneListeDeLApplication("domaines-legitimes.txt");
+
+export const domainesExclus = (): Set<string> =>
+  new Set(litUneListeDeLApplication("domaines-exclus.txt"));

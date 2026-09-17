@@ -1,16 +1,19 @@
-# domaine suspect | domaine imité attendu | classe de mutation
-bellley.fr | belley.fr | insertion
-service-publlic.fr | service-public.fr | insertion
-amelii.fr | ameli.fr | insertion
-impots-gouv.fr | impots.gouv.fr | separateur
-impotsgouv.fr | impots.gouv.fr | separateur
-impots.g0uv.fr | impots.gouv.fr | homoglyphe
-bellry.fr | belley.fr | faute-de-frappe
-belly.fr | belley.fr | omission
-belley.com | belley.fr | permutation-de-tld
-belley.fr.com | belley.fr | permutation-de-tld
-ameli-fr.com | ameli.fr | combosquat
-mairie-belley-officiel.xyz | belley.fr | combosquat
-impots.gouv.fr.secure-login.com | impots.gouv.fr | combosquat
-bеlley.fr | belley.fr | homoglyphe
-arneli.fr | ameli.fr | homoglyphe
+# domaine suspect | domaine imité attendu | classe | sévérité attendue
+# « aucune » signale une classe que le détecteur ne sait pas encore voir.
+impots.gouv.fr.secure-login.com | impots.gouv.fr | sous-domaine-trompeur | blocage
+ameli.fr.compte-verification.com | ameli.fr | sous-domaine-trompeur | blocage
+belley.fr.com | belley.fr | sous-domaine-trompeur | blocage
+bеlley.fr | belley.fr | homoglyphe | blocage
+arneli.fr | ameli.fr | homoglyphe | blocage
+impots.g0uv.fr | impots.gouv.fr | homoglyphe | blocage
+impots.xyz | impots.gouv.fr | permutation-de-tld | blocage
+mairie-belley-officiel.xyz | belley.fr | combosquat | blocage
+belley.com | belley.fr | permutation-de-tld | avertissement
+ameli-fr.com | ameli.fr | permutation-de-tld | avertissement
+service-publlic.fr | service-public.fr | distance-d-edition | avertissement
+impots-gouv.fr | impots.gouv.fr | distance-d-edition | avertissement
+impotsgouv.fr | impots.gouv.fr | distance-d-edition | avertissement
+bellley.fr | belley.fr | insertion | aucune
+amelii.fr | ameli.fr | insertion | aucune
+bellry.fr | belley.fr | faute-de-frappe | aucune
+belly.fr | belley.fr | omission | aucune

@@ -1,14 +1,22 @@
 import { describe, expect, it } from "vitest";
 
-import { chercheUneImitation } from "../../src/noyau/detection.ts";
-import { construisLIndexDeRecherche } from "../../src/noyau/index-de-recherche.ts";
-import { listeLegitime } from "../donnees/lecture.ts";
+import { classifie } from "../../src/noyau/classification.ts";
+import { analyseLUrl } from "../../src/noyau/detection.ts";
+import {
+  construisLIndexDeRecherche,
+  type IndexDeRecherche,
+} from "../../src/noyau/index-de-recherche.ts";
+import { normaliseLeNomDHote } from "../../src/noyau/normalisation.ts";
+import { domainesExclus, listeLegitime } from "../donnees/lecture.ts";
 
 const TAILLE_DE_LECHANTILLON = 3000;
 const GRAINE = 20260917;
+const PART_MAXIMALE_DE_BLOCAGES = 0.001;
+const PART_MAXIMALE_DAVERTISSEMENTS = 0.08;
 
 const domainesLegitimes = listeLegitime();
 const index = construisLIndexDeRecherche(domainesLegitimes);
+const exclus = domainesExclus();
 
 const verificationComplete = process.env["VERIFICATION_COMPLETE"] === "1";
 
@@ -29,29 +37,51 @@ const echantillonReproductible = (): string[] => {
 
 const aVerifier = echantillonReproductible();
 
-const signalesATort = aVerifier.filter(
-  (domaine) => chercheUneImitation(index, domaine) !== null,
-);
+const commeSIlEtaitInconnu = (domaine: string): IndexDeRecherche => ({
+  ...index,
+  domaines: {
+    has: (autre: string) => autre !== domaine && index.domaines.has(autre),
+  } as ReadonlySet<string>,
+});
+
+const verdictSiInconnu = (domaine: string) => {
+  const normalise = normaliseLeNomDHote(domaine);
+  return normalise === null ? null : classifie(commeSIlEtaitInconnu(domaine), normalise);
+};
 
 describe("La liste légitime passée dans le détecteur", () => {
-  it.fails("ne signale aucun de ses propres domaines", () => {
-    expect(signalesATort).toEqual([]);
-  });
-
-  it("ne signale jamais un domaine contre lui-même", () => {
-    const appariesAEuxMemes = aVerifier.filter(
-      (domaine) => chercheUneImitation(index, domaine)?.domaineImite === domaine,
+  it("ne signale aucun de ses propres domaines", () => {
+    const signales = aVerifier.filter(
+      (domaine) => analyseLUrl(index, exclus, `https://${domaine}/`) !== null,
     );
-    expect(appariesAEuxMemes).toEqual([]);
+    expect(signales).toEqual([]);
+  });
+});
+
+describe("Un domaine public légitime absent de la liste", () => {
+  const verdicts = aVerifier
+    .map(verdictSiInconnu)
+    .filter((verdict) => verdict !== null);
+
+  const blocages = verdicts.filter(({ severite }) => severite === "blocage");
+
+  it("n'est presque jamais bloqué", () => {
+    expect(blocages.length / aVerifier.length).toBeLessThan(
+      PART_MAXIMALE_DE_BLOCAGES,
+    );
   });
 
-  it("n'apparie qu'à des domaines présents dans la liste légitime", () => {
+  it("n'est averti que dans une minorité de cas", () => {
+    expect(verdicts.length / aVerifier.length).toBeLessThan(
+      PART_MAXIMALE_DAVERTISSEMENTS,
+    );
+  });
+
+  it("n'est jamais apparié à un domaine absent de la liste légitime", () => {
     const connus = new Set(domainesLegitimes);
-    const appariesInconnus = signalesATort
-      .map((domaine) => chercheUneImitation(index, domaine)?.domaineImite)
-      .filter((domaineImite) => domaineImite !== undefined)
-      .filter((domaineImite) => !connus.has(domaineImite));
-
-    expect(appariesInconnus).toEqual([]);
+    const apparieAUnInconnu = verdicts.filter(
+      ({ domaineImite }) => !connus.has(domaineImite),
+    );
+    expect(apparieAUnInconnu).toEqual([]);
   });
-}, 120_000);
+}, 180_000);

@@ -6,9 +6,14 @@ interface Navigation {
   readonly url: string;
 }
 
-const { ecouteurs, miseAJourDeLOnglet } = vi.hoisted(() => ({
+const { ecouteurs, miseAJourDeLOnglet, badge } = vi.hoisted(() => ({
   ecouteurs: [] as ((navigation: unknown) => void)[],
   miseAJourDeLOnglet: vi.fn(),
+  badge: {
+    setBadgeText: vi.fn(),
+    setBadgeBackgroundColor: vi.fn(),
+    setTitle: vi.fn(),
+  },
 }));
 
 vi.mock("webextension-polyfill", () => ({
@@ -24,6 +29,7 @@ vi.mock("webextension-polyfill", () => ({
       },
     },
     tabs: { update: miseAJourDeLOnglet },
+    action: badge,
   },
 }));
 
@@ -45,6 +51,10 @@ describe("L'arrière-plan", () => {
   beforeEach(() => {
     miseAJourDeLOnglet.mockReset();
     miseAJourDeLOnglet.mockResolvedValue({});
+    for (const appel of Object.values(badge)) {
+      appel.mockReset();
+      appel.mockResolvedValue(undefined);
+    }
   });
 
   it("s'abonne aux navigations avant leur chargement", () => {
@@ -61,39 +71,50 @@ describe("L'arrière-plan", () => {
     expect(miseAJourDeLOnglet).not.toHaveBeenCalled();
   });
 
-  it("redirige l'onglet vers la page d'alerte sur un domaine suspect", () => {
-    navigueVers("https://bellley.fr/");
+  it("redirige l'onglet vers la page d'alerte sur un domaine à bloquer", () => {
+    navigueVers("https://impots.gouv.fr.connexion-securisee.com/");
 
     expect(miseAJourDeLOnglet).toHaveBeenCalledOnce();
     const [idDeLOnglet] = miseAJourDeLOnglet.mock.calls[0] as [number];
     expect(idDeLOnglet).toBe(42);
 
     const parametres = pageDAlerteAffichee();
-    expect(parametres?.get("domaineVisite")).toBe("bellley.fr");
-    expect(parametres?.get("domaineImite")).toBe("belley.fr");
-    expect(Number(parametres?.get("score"))).toBeGreaterThan(85);
+    expect(parametres?.get("domaineImite")).toBe("impots.gouv.fr");
+    expect(parametres?.get("classe")).toBe("sous-domaine-trompeur");
+  });
+
+  it("se contente d'un badge sur un domaine à avertir", () => {
+    navigueVers("https://belley.com/");
+
+    expect(miseAJourDeLOnglet).not.toHaveBeenCalled();
+    expect(badge.setBadgeText).toHaveBeenCalledWith({ tabId: 42, text: "!" });
+    expect(badge.setTitle).toHaveBeenCalledWith({
+      tabId: 42,
+      title: "Ce domaine ressemble à belley.fr",
+    });
+  });
+
+  it("efface le badge en revenant sur un domaine sain", () => {
+    navigueVers("https://lemonde.fr/");
+    expect(badge.setBadgeText).toHaveBeenCalledWith({ tabId: 42, text: "" });
   });
 
   it("ignore les navigations d'iframe", () => {
-    navigueVers("https://bellley.fr/", 1);
+    navigueVers("https://impots.gouv.fr.connexion-securisee.com/", 1);
     expect(miseAJourDeLOnglet).not.toHaveBeenCalled();
+    expect(badge.setBadgeText).not.toHaveBeenCalled();
   });
 
   it("ignore les schémas qui ne sont pas du web", () => {
     navigueVers("about:blank");
     navigueVers("moz-extension://test/src/alerte/index.html");
-    navigueVers("file:///tmp/bellley.fr");
+    navigueVers("file:///tmp/belley.com");
     expect(miseAJourDeLOnglet).not.toHaveBeenCalled();
   });
 
   it("ignore les plateformes d'hébergement mutualisé", () => {
-    navigueVers("https://bellley.free.fr/");
-    navigueVers("https://bellley.wixsite.com/site");
+    navigueVers("https://belley.free.fr/");
+    navigueVers("https://belley.wixsite.com/site");
     expect(miseAJourDeLOnglet).not.toHaveBeenCalled();
-  });
-
-  it("ramène le domaine visité à son domaine enregistrable", () => {
-    navigueVers("https://www.bellley.fr/une/page?a=1");
-    expect(pageDAlerteAffichee()?.get("domaineVisite")).toBe("bellley.fr");
   });
 });

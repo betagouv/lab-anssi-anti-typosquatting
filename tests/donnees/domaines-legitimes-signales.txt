@@ -1,7 +1,0 @@
-# Domaines de la liste légitime que le détecteur signale à tort aujourd'hui.
-# Chacun est apparié à une collectivité voisine bien réelle et distincte.
-# Cette liste doit devenir vide.
-service-public.fr
-mairie-beny.fr
-colomieu.fr
-data.gouv.fr
