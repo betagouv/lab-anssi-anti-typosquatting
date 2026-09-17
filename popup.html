@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alerte - Site suspicieux</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<main>
+    <div>
+        <div class="badge">
+            <img src="warning.svg" alt="Icône d'avertissement"/>
+            <span>Site web non sécurisée</span>
+        </div>
+        <h1>Cette page n’est pas sûre</h1>
+        <h2 id="blocked-domain"></h2>
+        <div class="bloc-risque">
+            <p>Risque</p>
+            <div class="score">
+                <span id="final-score"></span>
+                <div class="progress-bar"></div>
+            </div>
+        </div>
+            <p class="contenu">
+                Ce site pourrait contenir des contenus dangereux susceptibles de vous nuire. Il a été bloqué pour garantir votre sécurité en ligne.
+                <br>
+                <br>
+                Vous cherchiez peut-être à accéder à ce site sécurisé :
+                <a id="safe-domain"></a>
+            </p>
+        <div class="actions">
+            <a class="primaire" id="close">Retour</a>
+            <a class="secondaire" id="blocked-domain-link">Visiter quand même</a>
+        </div>
+    </div>
+    <div class="conteneur-image">
+        <img src="illustration.svg" alt="Illustration" />
+    </div>
+</main>
+<!--<div class="warning-box">-->
+<!--    <div class="content">-->
+<!--        <img src="dragon.svg" alt="Illustration" />-->
+<!--        <div>-->
+<!--            <h2>⚠️ Attention !</h2>-->
+<!--            <p>Le nom de domaine du site auquel vous tentez d'accéder ressemble à celui d'un site de confiance.</p>-->
+<!--            <p>Il peut s'agir d'une tentative d'imitation malveillante visant à vous soutirer de l'argent ou voler vos données personnelles.</p>-->
+<!--            <table>-->
+<!--                <tbody>-->
+<!--                <tr>-->
+<!--                    <th scope="row">Site sécurisé</th>-->
+<!--                    <td id="safe-domain"></td>-->
+<!--                </tr>-->
+<!--                <tr>-->
+<!--                    <th scope="row">Tentative de connexion</th>-->
+<!--                    <td id="blocked-domain"></td>-->
+<!--                </tr>-->
+<!--                </tbody>-->
+<!--            </table>-->
+<!--            <div class="trust-factor">-->
+<!--                <span>Indice de confiance : </span>-->
+<!--                <span id="final-score"></span>-->
+<!--            </div>-->
+<!--            <a href="mailto:thibaud.marazano@beta.gouv.fr">Vous êtes propriétaire du site "<span id="blocked-domain-owner"></span>" et considérez qu'il s'agit d'une erreur ? Contactez notre équipe</a>-->
+<!--        </div>-->
+<!--    </div>-->
+<!--    <button id="proceed">Continuer quand même</button>-->
+<!--    <button id="redirect">Me rediriger vers le site de confiance</button>-->
+<!--</div>-->
+<script src="popup.js"></script>
+</body>
+</html>

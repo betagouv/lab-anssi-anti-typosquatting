@@ -1,0 +1,19 @@
+{
+  "name": "typosquatting-detector",
+  "version": "1.0.0",
+  "main": "src/background.js",
+  "scripts": {
+    "build": "vite build",
+    "watch": "vite build --watch"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "Apache-2.0",
+  "description": "",
+  "dependencies": {
+    "sql.js": "^1.13.0"
+  },
+  "devDependencies": {
+    "vite": "^6.2.5"
+  }
+}

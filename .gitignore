@@ -1,0 +1,20 @@
+# Dépendances
+node_modules/
+
+# Artefacts de build
+dist/
+web-ext-artifacts/
+*.zip
+
+# Données sources téléchargées (régénérables via npm run build:whitelist)
+data/raw/
+
+# Héritage du POC, conservé hors dépôt le temps de la migration
+db-management/
+lib/
+
+# Outils et environnements locaux
+.idea/
+.vscode/
+.DS_Store
+*.log
