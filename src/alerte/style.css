@@ -109,7 +109,14 @@ h2 {
     margin-top: 48px;
 }
 
-.actions a {
+.actions button {
+    font-family: inherit;
+    background: none;
+    border: none;
+}
+
+.actions a,
+.actions button {
     padding: 10px 24px;
     color: #F5F5FE;
     font-size: 18px;
@@ -121,11 +128,11 @@ h2 {
     text-decoration: none;
 }
 
-.actions a.primaire {
+.actions .primaire {
     background: #000091;
 }
 
-.actions a.secondaire {
+.actions .secondaire {
     border: 1px solid #000091;
     color: #000091;
 }
@@ -140,4 +147,14 @@ h2 {
         flex-direction: row-reverse;
         align-items: center;
     }
+}
+.signalement {
+    font-size: 14px;
+    line-height: 24px;
+    color: #3A3A3A;
+    margin-top: 24px;
+}
+
+.signalement a {
+    color: #000091;
 }

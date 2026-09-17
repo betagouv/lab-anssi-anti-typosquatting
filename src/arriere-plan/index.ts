@@ -8,6 +8,12 @@ import {
   type IndexDeRecherche,
 } from "../noyau/index-de-recherche.ts";
 import { litLaListeDeDomaines } from "../noyau/liste-de-domaines.ts";
+import {
+  normaliseLUrl,
+  normaliseLeNomDHote,
+} from "../noyau/normalisation.ts";
+import { autoriseLeDomaine, domainesAutorises } from "./exceptions.ts";
+import { estUneDemandeDAutorisation } from "./messages.ts";
 
 const ID_DU_CADRE_PRINCIPAL = 0;
 const COULEUR_DU_BADGE = "#B34000";
@@ -23,9 +29,9 @@ const indexDesDomainesLegitimes = (): IndexDeRecherche => {
   return indexDeRecherche;
 };
 
-const urlDeLaPageDAlerte = (verdict: Verdict, domaineVisite: string): string => {
+const urlDeLaPageDAlerte = (verdict: Verdict, nomDHoteVisite: string): string => {
   const parametres = new URLSearchParams({
-    domaineVisite,
+    domaineVisite: nomDHoteVisite,
     domaineImite: verdict.domaineImite,
     classe: verdict.classe,
     score: (verdict.scoreDeSuspicion * 100).toFixed(1),
@@ -33,42 +39,50 @@ const urlDeLaPageDAlerte = (verdict: Verdict, domaineVisite: string): string => 
   return browser.runtime.getURL(`src/alerte/index.html?${parametres.toString()}`);
 };
 
-const bloqueLaNavigation = (
+const afficheLaPageDAlerte = async (
   idDeLOnglet: number,
   verdict: Verdict,
-  domaineVisite: string,
-): void => {
-  void browser.tabs
-    .update(idDeLOnglet, { url: urlDeLaPageDAlerte(verdict, domaineVisite) })
-    .catch((erreur: unknown) => {
-      console.error("Redirection vers la page d'alerte impossible", erreur);
-    });
+  nomDHoteVisite: string,
+): Promise<void> => {
+  await browser.tabs.update(idDeLOnglet, {
+    url: urlDeLaPageDAlerte(verdict, nomDHoteVisite),
+  });
 };
 
-const avertitSansBloquer = (idDeLOnglet: number, verdict: Verdict): void => {
-  void browser.action
-    .setBadgeText({ tabId: idDeLOnglet, text: "!" })
-    .catch(() => undefined);
-  void browser.action
-    .setBadgeBackgroundColor({ tabId: idDeLOnglet, color: COULEUR_DU_BADGE })
-    .catch(() => undefined);
-  void browser.action
-    .setTitle({
-      tabId: idDeLOnglet,
-      title: `Ce domaine ressemble à ${verdict.domaineImite}`,
-    })
-    .catch(() => undefined);
+const afficheLeBadgeDAvertissement = async (
+  idDeLOnglet: number,
+  verdict: Verdict,
+): Promise<void> => {
+  await browser.action.setBadgeText({ tabId: idDeLOnglet, text: "!" });
+  await browser.action.setBadgeBackgroundColor({
+    tabId: idDeLOnglet,
+    color: COULEUR_DU_BADGE,
+  });
+  await browser.action.setTitle({
+    tabId: idDeLOnglet,
+    title: `Ce domaine ressemble à ${verdict.domaineImite}`,
+  });
 };
 
-const effaceLAvertissement = (idDeLOnglet: number): void => {
-  void browser.action
-    .setBadgeText({ tabId: idDeLOnglet, text: "" })
-    .catch(() => undefined);
+const effaceLeBadge = async (idDeLOnglet: number): Promise<void> => {
+  await browser.action.setBadgeText({ tabId: idDeLOnglet, text: "" });
 };
 
-browser.webNavigation.onBeforeNavigate.addListener((navigation) => {
-  const estUneNavigationPrincipale = navigation.frameId === ID_DU_CADRE_PRINCIPAL;
-  if (!estUneNavigationPrincipale) return;
+interface Navigation {
+  readonly tabId: number;
+  readonly frameId: number;
+  readonly url: string;
+}
+
+interface Expediteur {
+  readonly tab?: { readonly id?: number };
+}
+
+const traiteLaNavigation = async (navigation: Navigation): Promise<void> => {
+  if (navigation.frameId !== ID_DU_CADRE_PRINCIPAL) return;
+
+  const visite = normaliseLUrl(navigation.url);
+  if (visite === null) return;
 
   const verdict = analyseLUrl(
     indexDesDomainesLegitimes(),
@@ -76,19 +90,43 @@ browser.webNavigation.onBeforeNavigate.addListener((navigation) => {
     navigation.url,
   );
 
-  if (verdict === null) {
-    effaceLAvertissement(navigation.tabId);
+  const autorises = await domainesAutorises();
+  const estAutorise = autorises.has(visite.domaineEnregistrable);
+
+  if (verdict === null || estAutorise) {
+    await effaceLeBadge(navigation.tabId);
     return;
   }
 
   if (verdict.severite === "blocage") {
-    bloqueLaNavigation(
-      navigation.tabId,
-      verdict,
-      new URL(navigation.url).hostname,
-    );
+    await afficheLaPageDAlerte(navigation.tabId, verdict, visite.nomDHote);
     return;
   }
 
-  avertitSansBloquer(navigation.tabId, verdict);
+  await afficheLeBadgeDAvertissement(navigation.tabId, verdict);
+};
+
+browser.webNavigation.onBeforeNavigate.addListener((navigation) => {
+  void traiteLaNavigation(navigation as Navigation).catch((erreur: unknown) => {
+    console.error("Analyse de la navigation impossible", erreur);
+  });
+});
+
+browser.runtime.onMessage.addListener(async (
+  message: unknown,
+  expediteur: Expediteur,
+) => {
+  if (!estUneDemandeDAutorisation(message)) return;
+
+  const demande = normaliseLeNomDHote(message.domaine);
+  if (demande === null) return;
+
+  await autoriseLeDomaine(demande.domaineEnregistrable);
+
+  const idDeLOnglet = expediteur.tab?.id;
+  if (idDeLOnglet === undefined) return;
+
+  await browser.tabs.update(idDeLOnglet, {
+    url: `https://${demande.nomDHote}/`,
+  });
 });

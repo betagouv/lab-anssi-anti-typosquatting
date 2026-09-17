@@ -1,10 +1,6 @@
-import "./style.css";
+import browser from "webextension-polyfill";
 
-const parametres = new URLSearchParams(window.location.search);
-const domaineVisite = parametres.get("domaineVisite") ?? "";
-const domaineImite = parametres.get("domaineImite") ?? "";
-const scoreDeSuspicion = Number.parseFloat(parametres.get("score") ?? "0");
-const classe = parametres.get("classe") ?? "";
+import "./style.css";
 
 const MOTIFS: Readonly<Record<string, string>> = {
   "sous-domaine-trompeur":
@@ -16,20 +12,19 @@ const MOTIFS: Readonly<Record<string, string>> = {
   "distance-d-edition": "Le nom diffère de quelques caractères du site officiel",
 };
 
+const parametres = new URLSearchParams(window.location.search);
+const domaineVisite = parametres.get("domaineVisite") ?? "";
+const domaineImite = parametres.get("domaineImite") ?? "";
+const classe = parametres.get("classe") ?? "";
+const scoreDeSuspicion = Number.parseFloat(parametres.get("score") ?? "0");
+
 const afficheLeTexte = (identifiant: string, texte: string): void => {
   const element = document.getElementById(identifiant);
   if (element !== null) element.textContent = texte;
 };
 
-const afficheLeLien = (
-  identifiant: string,
-  url: string,
-  libelle?: string,
-): void => {
-  const element = document.getElementById(identifiant);
-  if (!(element instanceof HTMLAnchorElement)) return;
-  element.href = url;
-  if (libelle !== undefined) element.textContent = libelle;
+const auClic = (identifiant: string, action: () => void): void => {
+  document.getElementById(identifiant)?.addEventListener("click", action);
 };
 
 const enPourcentage = (valeur: number): string =>
@@ -41,11 +36,21 @@ const urlDuDomaineImite = `https://${domaineImite}`;
 afficheLeTexte("domaine-visite", domaineVisite);
 afficheLeTexte("motif", MOTIFS[classe] ?? "Risque");
 afficheLeTexte("score", scoreFormate);
+afficheLeTexte("domaine-imite", urlDuDomaineImite);
 document.body.style.setProperty("--score", scoreFormate);
 
-afficheLeLien("domaine-imite", urlDuDomaineImite, urlDuDomaineImite);
-afficheLeLien("visiter-quand-meme", `https://${domaineVisite}`);
+const lienVersLeDomaineImite = document.getElementById("domaine-imite");
+if (lienVersLeDomaineImite instanceof HTMLAnchorElement) {
+  lienVersLeDomaineImite.href = urlDuDomaineImite;
+}
 
-document.getElementById("retour")?.addEventListener("click", () => {
+auClic("retour", () => {
   history.back();
+});
+
+auClic("visiter-quand-meme", () => {
+  void browser.runtime.sendMessage({
+    type: "autorise-le-domaine",
+    domaine: domaineVisite,
+  });
 });
