@@ -1,9 +1,12 @@
 import browser from "webextension-polyfill";
-import domainesLegitimes from "../../db.js";
+
+import domainesExclusBruts from "../donnees/domaines-exclus.txt?raw";
+import domainesLegitimesBruts from "../donnees/domaines-legitimes.txt?raw";
+import { litLaListeDeDomaines } from "../noyau/liste-de-domaines.ts";
+import { normaliseLUrl } from "../noyau/normalisation.ts";
 
 const SEUIL_DE_SUSPICION = 0.85;
 const ID_DU_CADRE_PRINCIPAL = 0;
-const PROTOCOLES_NAVIGABLES = new Set(["http:", "https:"]);
 const TAILLE_DES_BIGRAMMES = 2;
 
 type VecteurDeBigrammes = ReadonlyMap<string, number>;
@@ -17,6 +20,9 @@ interface ImitationSuspectee {
   readonly domaineImite: string;
   readonly scoreDeSuspicion: number;
 }
+
+const domainesExclus = new Set(litLaListeDeDomaines(domainesExclusBruts));
+const domainesLegitimes = litLaListeDeDomaines(domainesLegitimesBruts);
 
 const distanceDeLevenshtein = (gauche: string, droite: string): number => {
   const distances = Array.from({ length: gauche.length + 1 }, () =>
@@ -121,13 +127,12 @@ const chercheUneImitation = (
   return null;
 };
 
-const nomDHoteNavigable = (url: string): string | null => {
-  try {
-    const { protocol, hostname } = new URL(url);
-    return PROTOCOLES_NAVIGABLES.has(protocol) ? hostname : null;
-  } catch {
-    return null;
-  }
+const domaineAAnalyser = (url: string): string | null => {
+  const normalise = normaliseLUrl(url);
+  if (normalise === null) return null;
+  if (normalise.estSousUnSuffixePrive) return null;
+  if (domainesExclus.has(normalise.domaineEnregistrable)) return null;
+  return normalise.domaineEnregistrable;
 };
 
 const urlDeLaPageDAlerte = (
@@ -152,7 +157,7 @@ browser.webNavigation.onBeforeNavigate.addListener((navigation) => {
   const estUneNavigationPrincipale = navigation.frameId === ID_DU_CADRE_PRINCIPAL;
   if (!estUneNavigationPrincipale) return;
 
-  const domaineVisite = nomDHoteNavigable(navigation.url);
+  const domaineVisite = domaineAAnalyser(navigation.url);
   if (domaineVisite === null) return;
 
   const imitation = chercheUneImitation(domaineVisite);

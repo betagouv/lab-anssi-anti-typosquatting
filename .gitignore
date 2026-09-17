@@ -6,12 +6,8 @@ dist/
 web-ext-artifacts/
 *.zip
 
-# Données sources téléchargées (régénérables via npm run build:whitelist)
-data/raw/
-
-# Héritage du POC, conservé hors dépôt le temps de la migration
-db-management/
-lib/
+# Jeu de données source, régénérable via npm run genere:domaines
+donnees-sources/
 
 # Outils et environnements locaux
 .idea/

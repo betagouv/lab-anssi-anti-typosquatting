@@ -15,7 +15,8 @@
     "lint": "eslint .",
     "test": "vitest run",
     "test:watch": "vitest",
-    "lint:ext": "npm run build:firefox && web-ext lint --source-dir=dist/firefox --self-hosted"
+    "lint:ext": "npm run build:firefox && web-ext lint --source-dir=dist/firefox --self-hosted",
+    "genere:domaines": "node scripts/genere-les-domaines-legitimes.ts"
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",

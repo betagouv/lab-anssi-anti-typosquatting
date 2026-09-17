@@ -17,6 +17,7 @@
     "verbatimModuleSyntax": true,
     "isolatedModules": true,
     "resolveJsonModule": true,
+    "allowImportingTsExtensions": true,
     "allowJs": true,
     "checkJs": false,
     "skipLibCheck": true,
