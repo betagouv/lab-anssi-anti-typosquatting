@@ -1,0 +1,16 @@
+# domaine suspect | domaine imité attendu | classe de mutation
+bellley.fr | belley.fr | insertion
+service-publlic.fr | service-public.fr | insertion
+amelii.fr | ameli.fr | insertion
+impots-gouv.fr | impots.gouv.fr | separateur
+impotsgouv.fr | impots.gouv.fr | separateur
+impots.g0uv.fr | impots.gouv.fr | homoglyphe
+bellry.fr | belley.fr | faute-de-frappe
+belly.fr | belley.fr | omission
+belley.com | belley.fr | permutation-de-tld
+belley.fr.com | belley.fr | permutation-de-tld
+ameli-fr.com | ameli.fr | combosquat
+mairie-belley-officiel.xyz | belley.fr | combosquat
+impots.gouv.fr.secure-login.com | impots.gouv.fr | combosquat
+bеlley.fr | belley.fr | homoglyphe
+arneli.fr | ameli.fr | homoglyphe

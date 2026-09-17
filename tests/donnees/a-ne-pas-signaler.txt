@@ -1,0 +1,8 @@
+# Domaines hors périmètre : ils ne ressemblent à aucun service public
+# français et ne doivent jamais déclencher d'alerte.
+lemonde.fr
+github.com
+wikipedia.org
+mozilla.org
+laposte.net
+leboncoin.fr
