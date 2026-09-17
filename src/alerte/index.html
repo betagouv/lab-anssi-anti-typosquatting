@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alerte — site suspect</title>
+    <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+<main>
+    <div>
+        <div class="badge">
+            <img src="/avertissement.svg" alt=""/>
+            <span>Site web non sécurisé</span>
+        </div>
+        <h1>Cette page n’est pas sûre</h1>
+        <h2 id="domaine-visite"></h2>
+        <div class="bloc-risque">
+            <p>Risque</p>
+            <div class="score">
+                <span id="score"></span>
+                <div class="barre-de-progression"></div>
+            </div>
+        </div>
+        <p class="contenu">
+            Ce site pourrait contenir des contenus dangereux susceptibles de vous nuire. Il a été bloqué
+            pour garantir votre sécurité en ligne.
+            <br>
+            <br>
+            Vous cherchiez peut-être à accéder à ce site sécurisé :
+            <a id="domaine-imite"></a>
+        </p>
+        <div class="actions">
+            <a class="primaire" id="retour" role="button" tabindex="0">Retour</a>
+            <a class="secondaire" id="visiter-quand-meme" role="button" tabindex="0">Visiter quand même</a>
+        </div>
+    </div>
+    <div class="conteneur-image">
+        <img src="/illustration.svg" alt=""/>
+    </div>
+</main>
+<script type="module" src="./principal.ts"></script>
+</body>
+</html>
