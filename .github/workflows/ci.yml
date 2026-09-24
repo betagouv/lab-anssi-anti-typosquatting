@@ -38,6 +38,18 @@ jobs:
           npm run genere:domaines
           diff /tmp/premiere-generation.txt src/donnees/domaines-legitimes.txt
 
+  classifieur:
+    name: Chaîne du classifieur sur dix lignes
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run classifieur:verifier-chaine
+
   extension:
     name: Empaquetage Chrome et Firefox
     runs-on: ubuntu-latest
