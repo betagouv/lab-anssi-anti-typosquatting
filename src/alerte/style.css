@@ -8,153 +8,332 @@
 
 @font-face {
     font-family: Marianne;
+    src: url("/polices/Marianne-Medium.woff2") format("woff2");
+    font-weight: 500;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: Marianne;
     src: url("/polices/Marianne-Bold.woff2") format("woff2");
     font-weight: 700;
     font-style: normal;
     font-display: swap;
 }
 
+:root {
+    --texte-fort: #161616;
+    --texte-courant: #3A3A3A;
+    --bordure: #DDDDDD;
+    --fond: #FFFFFF;
+    --alerte: #B34000;
+    --alerte-fond: #FFE9E6;
+    --alerte-jauge: #FFE0DB;
+    --action: #000091;
+    --action-texte: #F5F5FE;
+    --action-survol: #1212FF;
+    --focus: #0A76F6;
+
+    --largeur-maximale: 1248px;
+    --gouttiere: 16px;
+}
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
 body {
-    font-family: Marianne;
-    padding: 48px 16px;
-    color: #161616;
+    font-family: Marianne, system-ui, sans-serif;
+    color: var(--texte-fort);
+    background: var(--fond);
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+:focus-visible {
+    outline: 2px solid var(--focus);
+    outline-offset: 2px;
+}
+
+.contenu {
+    flex: 1 0 auto;
+    width: 100%;
+    max-width: var(--largeur-maximale);
+    margin: 0 auto;
+    padding: 48px var(--gouttiere);
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+}
+
+.texte {
+    max-width: 792px;
 }
 
 .badge {
-    border-radius: 4px;
-    background: #FFE9E6;
-    display: flex;
-    padding: 0 6px;
+    display: inline-flex;
+    align-items: center;
     gap: 4px;
-
-    width: fit-content;
-
-    color: #B34000;
+    margin: 0 0 8px;
+    padding: 0 6px;
+    border-radius: 4px;
+    background: var(--alerte-fond);
+    color: var(--alerte);
     font-size: 12px;
-    font-style: normal;
     font-weight: 700;
     line-height: 20px;
     text-transform: uppercase;
 }
 
 h1 {
+    margin: 0 0 8px;
     font-size: 40px;
-    font-style: normal;
     font-weight: 700;
     line-height: 48px;
-    margin: 8px 0;
 }
 
-h2 {
+.domaine-visite {
+    margin: 0 0 16px;
     font-size: 22px;
-    font-style: normal;
     font-weight: 700;
     line-height: 28px;
-    margin: 0;
+    overflow-wrap: anywhere;
 }
 
 .bloc-risque {
-    color: #3A3A3A;
-    font-size: 16px;
-    font-style: normal;
-    font-weight: 400;
-    line-height: 24px;
-    border: 1px solid #DDD;
-    display: flex;
+    max-width: 288px;
+    margin: 16px 0;
     padding: 8px 16px;
-    flex-direction: column;
-    gap: 8px;
-    margin-top: 32px;
+    border: 1px solid var(--bordure);
+    color: var(--texte-courant);
 }
 
-.bloc-risque p {
-    margin: 0;
+.bloc-risque .intitule {
+    margin: 0 0 8px;
+    font-size: 16px;
+    font-weight: 400;
+    line-height: 24px;
+}
+
+.bloc-risque .mesure {
+    display: flex;
+    align-items: center;
+    gap: 16px;
 }
 
 .bloc-risque .score {
+    margin: 0;
     font-size: 22px;
-    font-style: normal;
     font-weight: 700;
     line-height: 28px;
-    display: flex;
-    gap: 16px;
-    align-items: center;
+    white-space: nowrap;
 }
 
-.bloc-risque .barre-de-progression {
-    width: 100%;
+.bloc-risque .jauge {
+    flex: 1;
     height: 8px;
-    background: #FFE0DB;
     border-radius: 4px;
-    background: linear-gradient(to right, #B34000, #B34000 var(--score), #FFE0DB var(--score));
+    background: var(--alerte-jauge);
+    overflow: hidden;
 }
 
-.contenu {
-    font-size: 20px;
-    font-style: normal;
+.bloc-risque .remplissage {
+    height: 100%;
+    width: var(--score, 0%);
+    background: var(--alerte);
+}
+
+.motif:empty {
+    display: none;
+}
+
+.motif {
+    margin: 0 0 24px;
+    font-size: 16px;
     font-weight: 400;
     line-height: 24px;
+    color: var(--texte-courant);
 }
 
-.contenu a {
-    color: #161616;
-    line-height: 32px;
-    text-decoration-line: underline;
+.corps {
+    margin: 0 0 24px;
+    font-size: 18px;
+    font-weight: 400;
+    line-height: 28px;
+}
+
+.corps a {
+    color: inherit;
+    overflow-wrap: anywhere;
+    text-decoration: underline;
+    text-underline-position: from-font;
 }
 
 .actions {
     display: flex;
     flex-direction: column;
     gap: 16px;
-    margin-top: 48px;
+    padding: 8px 0;
 }
 
-.actions button {
+.bouton {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    border: 1px solid transparent;
+    border-radius: 0;
     font-family: inherit;
-    background: none;
-    border: none;
-}
-
-.actions a,
-.actions button {
-    padding: 10px 24px;
-    color: #F5F5FE;
     font-size: 18px;
-    font-style: normal;
     font-weight: 500;
     line-height: 28px;
+    padding: 10px 24px;
     cursor: pointer;
     text-align: center;
     text-decoration: none;
 }
 
-.actions .primaire {
-    background: #000091;
+.bouton.primaire {
+    background: var(--action);
+    color: var(--action-texte);
 }
 
-.actions .secondaire {
-    border: 1px solid #000091;
-    color: #000091;
+.bouton.primaire:hover {
+    background: var(--action-survol);
 }
 
-.conteneur-image {
-    margin-top: 14px;
+.bouton.secondaire {
+    background: transparent;
+    border-color: var(--action);
+    color: var(--action);
 }
 
-@media screen and (min-width: 576px)  {
-    main {
-        display: flex;
-        flex-direction: row-reverse;
-        align-items: center;
-    }
+.bouton.secondaire:hover {
+    background: #F6F6F6;
 }
+
 .signalement {
+    margin: 8px 0 0;
+}
+
+.bouton.tertiaire {
+    justify-content: flex-start;
+    padding: 4px 0;
     font-size: 14px;
     line-height: 24px;
-    color: #3A3A3A;
-    margin-top: 24px;
+    color: var(--action);
+    text-align: left;
 }
 
-.signalement a {
-    color: #000091;
+.bouton.tertiaire:hover {
+    text-decoration: underline;
+}
+
+.bouton.tertiaire img {
+    flex: none;
+}
+
+.media {
+    display: flex;
+    justify-content: center;
+    padding: 16px 0;
+}
+
+.media img {
+    width: 100%;
+    max-width: 584px;
+    height: auto;
+}
+
+.pied-de-page {
+    flex: none;
+}
+
+.separateur {
+    display: block;
+    width: 100%;
+    height: 2px;
+}
+
+.marque {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    max-width: var(--largeur-maximale);
+    margin: 0 auto;
+    padding: 16px var(--gouttiere) 8px;
+}
+
+.bloc-marque {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 16px;
+}
+
+.bloc-marque .institution {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 700;
+    line-height: 21px;
+    letter-spacing: 0.1px;
+    text-transform: uppercase;
+    color: #000000;
+}
+
+.logo-anssi {
+    flex: none;
+    margin: 16px;
+}
+
+@media (min-width: 576px) {
+    .contenu {
+        flex-direction: row-reverse;
+        align-items: center;
+        justify-content: center;
+        gap: 24px;
+        padding: 72px var(--gouttiere);
+    }
+
+    .texte,
+    .media {
+        flex: 1 1 0;
+        min-width: 0;
+    }
+
+    .media {
+        padding: 14px 0;
+    }
+
+    h1 {
+        font-size: 48px;
+        line-height: 56px;
+    }
+
+    .domaine-visite {
+        margin-bottom: 24px;
+        font-size: 24px;
+        line-height: 32px;
+    }
+
+    .actions {
+        flex-direction: row;
+        flex-wrap: wrap;
+    }
+
+    .bouton.primaire,
+    .bouton.secondaire {
+        flex: none;
+    }
+}
+
+@media (min-width: 992px) {
+    :root {
+        --gouttiere: 24px;
+    }
 }
