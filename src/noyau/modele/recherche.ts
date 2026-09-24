@@ -1,5 +1,5 @@
-import { vecteurDeBigrammes, similariteCosinus, type VecteurDeBigrammes } from "../../src/noyau/bigrammes.ts";
-import { distanceDeLevenshtein, similariteDEdition } from "../../src/noyau/levenshtein.ts";
+import { vecteurDeBigrammes, similariteCosinus, type VecteurDeBigrammes } from "../bigrammes.ts";
+import { distanceDeLevenshtein, similariteDEdition } from "../levenshtein.ts";
 
 export interface DomaineIndexe {
   readonly domaine: string;
@@ -61,7 +61,6 @@ const ajoutePosition = (index: Map<string, number[]>, cle: string, position: num
 
 export class RechercheDeCandidats {
   private readonly references: DomaineIndexe[];
-  private readonly positionParDomaine = new Map<string, number>();
   private readonly parBigramme = new Map<string, number[]>();
   private readonly parTrigramme = new Map<string, number[]>();
   private readonly parExtension = new Map<string, number[]>();
@@ -69,14 +68,13 @@ export class RechercheDeCandidats {
   constructor(domaines: readonly string[]) {
     this.references = domaines.map(indexeLeDomaine);
     this.references.forEach((reference, position) => {
-      this.positionParDomaine.set(reference.domaine, position);
       for (const bigramme of reference.bigrammes.keys()) ajoutePosition(this.parBigramme, bigramme, position);
       for (const trigramme of groupesDeLettres(reference.domaine, 3)) ajoutePosition(this.parTrigramme, trigramme, position);
       ajoutePosition(this.parExtension, reference.domaine.split(".").at(-1) ?? "", position);
     });
   }
 
-  trouveLesPlusProches(domaine: string, nombre = 10, referenceForcee: string | null = null): Candidat[] {
+  trouveLesPlusProches(domaine: string, nombre = 10): Candidat[] {
     const url = indexeLeDomaine(domaine);
     const frequences = new Map<number, number>();
     for (const bigramme of url.bigrammes.keys()) {
@@ -105,10 +103,6 @@ export class RechercheDeCandidats {
     const extension = domaine.split(".").at(-1) ?? "";
     for (const position of (this.parExtension.get(extension) ?? []).slice(0, nombre * 2)) {
       positionsCandidates.add(position);
-    }
-    if (referenceForcee !== null) {
-      const position = this.positionParDomaine.get(referenceForcee);
-      if (position !== undefined) positionsCandidates.add(position);
     }
     for (let position = 0; positionsCandidates.size < nombre * 2 && position < this.references.length; position++) {
       positionsCandidates.add(position);

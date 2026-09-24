@@ -52,6 +52,7 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run classifieur:verifier-chaine
+      - run: npm run classifieur:verifier-export
 
   extension:
     name: Empaquetage Chrome et Firefox
@@ -64,6 +65,12 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run build:all
+      - name: Modèle présent dans les deux paquets
+        run: |
+          test -s dist/chrome/modele/essai.bin
+          test -s dist/chrome/modele/essai.json
+          test -s dist/firefox/modele/essai.bin
+          test -s dist/firefox/modele/essai.json
       - name: Validation du paquet Firefox
         run: npx web-ext lint --source-dir=dist/firefox --self-hosted
       - uses: actions/upload-artifact@v7

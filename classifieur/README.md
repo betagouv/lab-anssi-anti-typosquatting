@@ -1,6 +1,6 @@
 # Classifieur de typosquatting
 
-Ce dossier permet de créer un jeu d'exemples, d'entraîner un modèle TensorFlow.js, de l'évaluer et d'essayer localement une URL avec les poids obtenus. L'export optimisé et l'intégration du modèle à l'extension sont prévus dans une autre PR.
+Ce dossier permet de créer un jeu d'exemples, d'entraîner un modèle TensorFlow.js, de l'évaluer et d'essayer localement une URL avec les poids obtenus. Un modèle d'essai exporté est inclus dans l'extension pour comparer son résultat aux règles actuelles.
 
 ## Installer le projet
 
@@ -34,7 +34,9 @@ La seule entrée versionnée est [`src/donnees/domaines-legitimes.txt`](../src/d
 
 Les lignes positives sont des variantes synthétiques de domaines légitimes ; les négatives sont des noms intermédiaires ou distants. Le modèle reçoit les caractéristiques numériques calculées à partir des dix domaines de référence les plus proches. Les variantes d'un même domaine source restent dans la même répartition. La normalisation est apprise sur l'entraînement seulement.
 
-`rapports/provenance.json` contient l'empreinte SHA-256 du fichier source, la graine et les paramètres de génération. Les résultats sont régénérables et ignorés par Git. Les poids peuvent varier légèrement d'une plateforme à l'autre.
+Train, la prédiction locale et l'extension emploient la même recherche de candidats, les mêmes 157 caractéristiques et la même normalisation. La génération n'impose plus de référence parmi les candidats. Les URL sont ramenées au domaine enregistrable, comme dans l'extension.
+
+`rapports/provenance.json` contient l'empreinte SHA-256 du contenu source avec des fins de ligne LF, la graine et les paramètres de génération. Les résultats sont régénérables et ignorés par Git. Les poids peuvent varier légèrement d'une plateforme à l'autre.
 
 ## Entraîner le modèle
 
@@ -89,6 +91,20 @@ La commande exige `modele/poids.json`, `modele/normalisation.json`, `rapports/ev
 
 Ici, `valide` signifie seulement qu'aucune proximité trompeuse suffisante n'a été détectée avec la liste de référence. Les exemples d'apprentissage étant synthétiques, le score ne représente pas une probabilité opérationnelle de fraude. Le seuil et le F1 sont choisis sur le jeu de test, comme dans le prototype : le F1 affiché reste une mesure exploratoire.
 
+## Exporter le modèle d'essai pour l'extension
+
+La version embarquée est entraînée avec les paramètres de `classifieur:essai` : 1 000 domaines sources, graine `20260917`, jusqu'à 12 époques. Après un entraînement et son évaluation :
+
+```bash
+npm run classifieur:essai
+npm run classifieur:exporter-modele
+npm run classifieur:verifier-export
+```
+
+L'export écrit `public/modele/essai.bin` (poids float32) et `public/modele/essai.json` (ordre des colonnes, normalisation, seuil, empreintes et paramètres). Ces deux fichiers sont versionnés et embarqués dans les paquets Chrome et Firefox. La commande d'export refuse une liste source, des poids, une architecture ou une normalisation incompatibles ; `classifieur:verifier-export` vérifie de nouveau l'export sans entraîner le modèle. Si la liste légitime change, réentraîner et exporter avant de livrer l'extension.
+
+L'inférence de l'extension utilise un calcul TypeScript limité aux trois couches du modèle. Le test de parité compare ses scores à TensorFlow.js. La fenêtre ouverte depuis l'icône affiche le résultat expérimental et celui des règles pour le domaine courant ; seul ce dernier pilote les alertes.
+
 ## Vérifier le code
 
 ```bash
@@ -96,8 +112,9 @@ npm run typecheck
 npm run lint
 npm test
 npm run classifieur:verifier-chaine
+npm run classifieur:verifier-export
 ```
 
 `classifieur:verifier-chaine` est le contrôle de bout en bout exécuté en CI. Il génère des exemples à partir de `src/donnees/domaines-legitimes.txt`, retient exactement dix lignes (six pour l'entraînement, deux pour la validation et deux pour le test), avec les deux classes dans chaque répartition et sans mélanger les variantes d'un domaine source entre répartitions. Il normalise, entraîne pendant une époque, évalue et prédit une URL absente de la liste. La commande vérifie les artefacts et la validité numérique de la prédiction ; elle n'impose aucun score ni verdict. Tous ses fichiers sont créés dans un répertoire temporaire supprimé à la fin.
 
-Le code est organisé par étapes dans `creation-du-dataset/`, `entrainement/`, `evaluation/`, `inference/` et `verification/`. `commun/` regroupe les accès aux fichiers et `ligne-de-commande/` expose les commandes usuelles.
+Le code est organisé par étapes dans `creation-du-dataset/`, `entrainement/`, `evaluation/`, `inference/`, `exportation/` et `verification/`. Le calcul partagé avec l'extension se trouve dans `src/noyau/modele/`. `commun/` regroupe les accès aux fichiers et `ligne-de-commande/` expose les commandes usuelles.

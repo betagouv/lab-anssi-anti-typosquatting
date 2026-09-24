@@ -3,6 +3,17 @@ export interface DemandeDAutorisation {
   readonly domaine: string;
 }
 
+export interface DemandeDeComparaison {
+  readonly type: "compare-les-methodes";
+  readonly url: string;
+}
+
+export const estUneDemandeDeComparaison = (message: unknown): message is DemandeDeComparaison => {
+  if (typeof message !== "object" || message === null) return false;
+  const candidat = message as Partial<DemandeDeComparaison>;
+  return candidat.type === "compare-les-methodes" && typeof candidat.url === "string";
+};
+
 export const estUneDemandeDAutorisation = (
   message: unknown,
 ): message is DemandeDAutorisation => {

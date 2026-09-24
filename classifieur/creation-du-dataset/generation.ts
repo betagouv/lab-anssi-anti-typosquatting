@@ -1,12 +1,13 @@
 import { readFile } from "node:fs/promises";
 
 import { hache32 } from "./aleatoire.ts";
-import { colonnesDesCaracteristiques, colonnesDesMetadonnees, construitLigneDeCaracteristiques } from "./caracteristiques.ts";
+import { colonnesDesCaracteristiques, colonnesDesMetadonnees, construitLigneDeCaracteristiques } from "../../src/noyau/modele/caracteristiques.ts";
+import { normaliseLeDomaine } from "../../src/noyau/modele/domaines.ts";
+import { RechercheDeCandidats } from "../../src/noyau/modele/recherche.ts";
 import { cheminsDesResultats } from "../commun/chemins.ts";
-import { litLesDomaines, normaliseLeDomaine } from "./domaines.ts";
+import { litLesDomaines } from "./domaines.ts";
 import { creeRedacteurCsv, ecritJson } from "../commun/fichiers.ts";
 import { genereNomDistant, genereNomIntermediaire, genereVariantesTrompeuses } from "./mutations.ts";
-import { RechercheDeCandidats } from "./recherche.ts";
 
 export interface ParametresDeGeneration {
   readonly repertoire: string;
@@ -58,9 +59,8 @@ export const genereLesDonnees = async (parametres: ParametresDeGeneration): Prom
     type: string,
     classe: string,
     cible: number,
-    referenceForcee: string | null,
   ): Promise<void> => {
-    const candidats = recherche.trouveLesPlusProches(domaine, nombreDeCandidats, referenceForcee);
+    const candidats = recherche.trouveLesPlusProches(domaine, nombreDeCandidats);
     await redacteur.ecritLigne(construitLigneDeCaracteristiques(domaine, candidats, {
       domaine_reference_source: referenceSource,
       type_generation: type,
@@ -82,12 +82,12 @@ export const genereLesDonnees = async (parametres: ParametresDeGeneration): Prom
         try { domaine = normaliseLeDomaine(variante.domaine); }
         catch { nombreDeVariantesIgnorees++; continue; }
         if (ensembleDesReferences.has(domaine)) { nombreDeVariantesIgnorees++; continue; }
-        const candidats = recherche.trouveLesPlusProches(domaine, nombreDeCandidats, referenceSource);
+        const candidats = recherche.trouveLesPlusProches(domaine, nombreDeCandidats);
         if ((candidats[0]?.comparaison.scoreSuspicion ?? 0) < scoreMinimumImitation) {
           nombreDeVariantesIgnorees++;
           continue;
         }
-        await ecritExemple(domaine, referenceSource, variante.type, "typosquatting_synthetique", 1, referenceSource);
+        await ecritExemple(domaine, referenceSource, variante.type, "typosquatting_synthetique", 1);
         imitationsEcrites++;
       }
 
@@ -99,10 +99,10 @@ export const genereLesDonnees = async (parametres: ParametresDeGeneration): Prom
         try { domaine = normaliseLeDomaine(genere); }
         catch { continue; }
         if (ensembleDesReferences.has(domaine)) continue;
-        const candidats = recherche.trouveLesPlusProches(domaine, nombreDeCandidats, referenceSource);
+        const candidats = recherche.trouveLesPlusProches(domaine, nombreDeCandidats);
         const score = candidats[0]?.comparaison.scoreSuspicion ?? 0;
         if (score < scoreMinimumIntermediaire || score >= scoreMaximumIntermediaire) continue;
-        await ecritExemple(domaine, referenceSource, "nom_intermediaire_synthetique", "non_trompeur_intermediaire_synthetique", 0, referenceSource);
+        await ecritExemple(domaine, referenceSource, "nom_intermediaire_synthetique", "non_trompeur_intermediaire_synthetique", 0);
         intermediairesEcrits++;
       }
 
@@ -112,7 +112,7 @@ export const genereLesDonnees = async (parametres: ParametresDeGeneration): Prom
         if (ensembleDesReferences.has(domaine)) continue;
         const candidats = recherche.trouveLesPlusProches(domaine, nombreDeCandidats);
         if ((candidats[0]?.comparaison.scoreSuspicion ?? 0) >= scoreMinimumIntermediaire) continue;
-        await ecritExemple(domaine, referenceSource, "nom_distant_synthetique", "non_trompeur_synthetique", 0, null);
+        await ecritExemple(domaine, referenceSource, "nom_distant_synthetique", "non_trompeur_synthetique", 0);
         distantsEcrits++;
       }
       if ((position + 1) % 500 === 0 || position + 1 === referencesSelectionnees.length) {

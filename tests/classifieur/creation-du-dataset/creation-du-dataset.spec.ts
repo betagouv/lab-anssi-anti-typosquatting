@@ -3,15 +3,20 @@ import { mkdtemp, realpath, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { basename, join, sep } from "node:path";
 
-import { construitLigneDeCaracteristiques } from "../../../classifieur/creation-du-dataset/caracteristiques.ts";
+import { construitLigneDeCaracteristiques } from "../../../src/noyau/modele/caracteristiques.ts";
 import { cheminsDesResultats } from "../../../classifieur/commun/chemins.ts";
-import { litLesDomaines } from "../../../classifieur/creation-du-dataset/domaines.ts";
+import { empreinteDeLaListe, litLesDomaines } from "../../../classifieur/creation-du-dataset/domaines.ts";
 import { creeRedacteurCsv, parcourtLeCsv } from "../../../classifieur/commun/fichiers.ts";
 import { genereVariantesTrompeuses } from "../../../classifieur/creation-du-dataset/mutations.ts";
-import { RechercheDeCandidats } from "../../../classifieur/creation-du-dataset/recherche.ts";
+import { RechercheDeCandidats } from "../../../src/noyau/modele/recherche.ts";
 import { repartitLesDonnees } from "../../../classifieur/creation-du-dataset/repartition.ts";
 
 describe("La préparation de l'entraînement", () => {
+  it("calcule la même empreinte pour les fins de ligne Windows et Unix", () => {
+    expect(empreinteDeLaListe("belley.fr\r\nimpots.gouv.fr\r\n"))
+      .toBe(empreinteDeLaListe("belley.fr\nimpots.gouv.fr\n"));
+  });
+
   it("part de la liste légitime versionnée", async () => {
     const { domaines, empreinte } = await litLesDomaines();
     expect(domaines.length).toBeGreaterThan(20_000);
@@ -29,7 +34,7 @@ describe("La préparation de l'entraînement", () => {
 
   it("rapproche un exemple synthétique de sa référence et construit les caractéristiques", () => {
     const recherche = new RechercheDeCandidats(["impots.gouv.fr", "belley.fr"]);
-    const candidats = recherche.trouveLesPlusProches("imp0ts.gouv.fr", 2, "impots.gouv.fr");
+    const candidats = recherche.trouveLesPlusProches("imp0ts.gouv.fr", 2);
     expect(candidats[0]?.reference.domaine).toBe("impots.gouv.fr");
     const ligne = construitLigneDeCaracteristiques("imp0ts.gouv.fr", candidats, {
       domaine_reference_source: "impots.gouv.fr",
