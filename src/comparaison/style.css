@@ -1,14 +1,173 @@
-:root { font-family: system-ui, sans-serif; color: #1b1b35; background: #f5f6fb; }
-body { margin: 0; width: 600px; }
-main { padding: 20px; }
-.sur-titre { color: #4b57a1; font-size: 12px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; margin: 0 0 4px; }
-h1 { font-size: 21px; margin: 0 0 10px; }
-.domaine { margin: 0 0 12px; overflow-wrap: anywhere; font-weight: 600; }
-.etat { min-height: 18px; margin: 0 0 10px; font-size: 13px; color: #53566f; }
-.resultats { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-section { min-width: 0; padding: 16px; border: 1px solid #dedfec; border-radius: 10px; background: #fff; }
-.methode { color: #4b57a1; font-size: 12px; font-weight: 700; margin: 0 0 4px; }
-h2 { font-size: 18px; margin: 0 0 12px; }
-.decision { font-size: 16px; font-weight: 700; margin: 0 0 10px; }
-.details { color: #42445e; font-size: 13px; line-height: 1.5; white-space: pre-line; overflow-wrap: anywhere; margin: 0; }
-.note { color: #53566f; font-size: 12px; line-height: 1.45; margin: 15px 0 0; }
+@font-face {
+  font-family: Marianne;
+  src: url("/polices/Marianne-Regular.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: Marianne;
+  src: url("/polices/Marianne-Medium.woff2") format("woff2");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: Marianne;
+  src: url("/polices/Marianne-Bold.woff2") format("woff2");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+:root {
+  font-family: Marianne, system-ui, sans-serif;
+  color: #161616;
+  background: #fff;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  --couleur-action: #000091;
+  --couleur-action-survol: #1212ff;
+  --couleur-texte-secondaire: #3a3a3a;
+  --couleur-bordure: #ddd;
+  --couleur-fond-secondaire: #f6f6f6;
+  --couleur-essai: #6a6af4;
+  --largeur-fenetre: 640px;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  width: min(var(--largeur-fenetre), 100vw);
+  margin: 0;
+}
+
+main {
+  padding: 24px;
+}
+
+:focus-visible {
+  outline: 2px solid #0a76f6;
+  outline-offset: 2px;
+}
+
+.sur-titre {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 8px;
+  color: var(--couleur-action);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  line-height: 20px;
+  text-transform: uppercase;
+}
+
+.sur-titre::before {
+  width: 4px;
+  height: 20px;
+  background: var(--couleur-action);
+  content: "";
+}
+
+h1 {
+  margin: 0 0 12px;
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 32px;
+}
+
+.domaine {
+  margin: 0 0 8px;
+  overflow-wrap: anywhere;
+  color: var(--couleur-action);
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 24px;
+}
+
+.etat {
+  min-height: 24px;
+  margin: 0 0 16px;
+  color: var(--couleur-texte-secondaire);
+  font-size: 14px;
+  line-height: 22px;
+}
+
+.resultats {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+section {
+  min-width: 0;
+  padding: 16px;
+  border: 1px solid var(--couleur-bordure);
+  border-top: 4px solid var(--couleur-action);
+  background: #fff;
+}
+
+section[aria-labelledby="titre-modele"] {
+  border-top-color: var(--couleur-essai);
+}
+
+.methode {
+  margin: 0 0 4px;
+  color: var(--couleur-texte-secondaire);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 20px;
+}
+
+h2 {
+  margin: 0 0 12px;
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 24px;
+}
+
+.decision {
+  margin: 0 0 8px;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 24px;
+}
+
+.details {
+  margin: 0;
+  color: var(--couleur-texte-secondaire);
+  font-size: 13px;
+  line-height: 20px;
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+}
+
+.note {
+  margin: 16px 0 0;
+  padding: 12px 16px;
+  border-left: 4px solid var(--couleur-action);
+  background: var(--couleur-fond-secondaire);
+  color: var(--couleur-texte-secondaire);
+  font-size: 12px;
+  line-height: 18px;
+}
+
+@media (max-width: 420px) {
+  main {
+    padding: 20px 16px;
+  }
+
+  .resultats {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+}
