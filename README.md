@@ -60,9 +60,9 @@ Un **blocage** remplace la page par un interstitiel. Un **avertissement** pose u
 sur l'icône de l'extension et n'interrompt jamais la navigation.
 
 Un clic sur l'icône ouvre aussi une fenêtre de comparaison pour l'onglet courant. Elle
-affiche côte à côte le résultat des règles et celui d'un modèle d'essai, même si les
-règles ne signalent rien. Ce modèle a été entraîné sur 1 000 domaines sources et des
-exemples synthétiques ; son score est exploratoire. Les règles seules continuent de
+affiche côte à côte le résultat des règles et celui d'un modèle expérimental, même si les
+règles ne signalent rien. Ce modèle a été entraîné à partir de toute la liste légitime et
+d'exemples synthétiques ; son score reste exploratoire. Les règles seules continuent de
 déclencher les blocages et avertissements. Le calcul est local et le modèle est chargé
 uniquement à l'ouverture de la fenêtre.
 
