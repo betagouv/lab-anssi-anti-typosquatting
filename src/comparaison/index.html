@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Comparer les détections</title>
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+  <main>
+    <p class="sur-titre">Détection de typosquatting</p>
+    <h1>Comparaison des méthodes</h1>
+    <p id="domaine" class="domaine">Chargement de l’onglet…</p>
+    <p id="etat" class="etat" role="status"></p>
+    <div class="resultats">
+      <section aria-labelledby="titre-regles">
+        <p class="methode">Méthode actuelle</p>
+        <h2 id="titre-regles">Règles</h2>
+        <p id="decision-regles" class="decision">Analyse en cours…</p>
+        <p id="details-regles" class="details"></p>
+      </section>
+      <section aria-labelledby="titre-modele">
+        <p class="methode">Modèle d’essai</p>
+        <h2 id="titre-modele">Classifieur</h2>
+        <p id="decision-modele" class="decision">Analyse en cours…</p>
+        <p id="details-modele" class="details"></p>
+      </section>
+    </div>
+    <p class="note">Le modèle est entraîné sur un sous-ensemble synthétique. Son score ne mesure pas un risque de fraude opérationnel. Seules les règles actuelles déclenchent les alertes de navigation.</p>
+  </main>
+  <script type="module" src="./principal.ts"></script>
+</body>
+</html>

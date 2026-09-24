@@ -1,6 +1,7 @@
 import { nomSansSuffixe, suffixePublic } from "./domaines.ts";
 import { compareLaPaire, indexeLeDomaine, type Candidat } from "./recherche.ts";
-import type { LigneCsv } from "../commun/fichiers.ts";
+
+type LigneCsv = Record<string, string | number>;
 
 const PAIRES_LEET = new Set(["a4", "4a", "e3", "3e", "g9", "9g", "i1", "1i", "l1", "1l", "o0", "0o", "s5", "5s", "t7", "7t"]);
 

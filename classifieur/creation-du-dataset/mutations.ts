@@ -1,5 +1,5 @@
 import { choisit, creeGenerateurAleatoire } from "./aleatoire.ts";
-import { suffixePublic } from "./domaines.ts";
+import { suffixePublic } from "../../src/noyau/modele/domaines.ts";
 
 export interface Variante {
   readonly domaine: string;

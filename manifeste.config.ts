@@ -40,6 +40,7 @@ export function genereLeManifeste(): Record<string, unknown> {
     action: {
       default_title: "Détection de typosquatting",
       default_icon: icones,
+      default_popup: "src/comparaison/index.html",
     },
     icons: icones,
 

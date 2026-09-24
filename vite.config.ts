@@ -31,7 +31,7 @@ export default defineConfig({
     webExtension({
       manifest: genereLeManifeste,
       browser: navigateurCible,
-      additionalInputs: ["src/alerte/index.html"],
+      additionalInputs: ["src/alerte/index.html", "src/comparaison/index.html"],
       webExtConfig: {
         target: navigateurCible === "firefox" ? ["firefox-desktop"] : ["chromium"],
         startUrl: ["about:blank"],

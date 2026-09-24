@@ -59,6 +59,13 @@ blocage ou du simple avertissement :
 Un **blocage** remplace la page par un interstitiel. Un **avertissement** pose un badge
 sur l'icône de l'extension et n'interrompt jamais la navigation.
 
+Un clic sur l'icône ouvre aussi une fenêtre de comparaison pour l'onglet courant. Elle
+affiche côte à côte le résultat des règles et celui d'un modèle d'essai, même si les
+règles ne signalent rien. Ce modèle a été entraîné sur 1 000 domaines sources et des
+exemples synthétiques ; son score est exploratoire. Les règles seules continuent de
+déclencher les blocages et avertissements. Le calcul est local et le modèle est chargé
+uniquement à l'ouverture de la fenêtre.
+
 Trois invariants : un domaine de la liste légitime n'est jamais signalé, un domaine
 explicitement exclu non plus, et le domaine désigné comme imité appartient toujours à la
 liste.
@@ -68,7 +75,7 @@ Depuis l'interstitiel, « Visiter quand même » enregistre une exception de 24 
 
 ## Les données
 
-L'entraînement et l'essai local du classifieur sont décrits dans [son README](classifieur/README.md). Il repart de la liste légitime versionnée ; le modèle n'est pas encore utilisé par l'extension.
+L'entraînement, l'export du modèle d'essai et sa vérification sont décrits dans [le README du classifieur](classifieur/README.md). Le modèle embarqué et la liste légitime versionnée sont vérifiés ensemble en CI.
 
 `src/donnees/domaines-legitimes.txt` est **généré**, pas édité à la main :
 

@@ -3,10 +3,11 @@ import { readFile } from "node:fs/promises";
 import * as tf from "@tensorflow/tfjs";
 
 import { cheminsDesResultats } from "../commun/chemins.ts";
-import { construitLigneDeCaracteristiques } from "../creation-du-dataset/caracteristiques.ts";
-import { litLesDomaines, normaliseLeDomaine } from "../creation-du-dataset/domaines.ts";
+import { construitLigneDeCaracteristiques } from "../../src/noyau/modele/caracteristiques.ts";
+import { normaliseLeDomaine } from "../../src/noyau/modele/domaines.ts";
+import { RechercheDeCandidats } from "../../src/noyau/modele/recherche.ts";
+import { litLesDomaines } from "../creation-du-dataset/domaines.ts";
 import { litLaProvenance } from "../creation-du-dataset/generation.ts";
-import { RechercheDeCandidats } from "../creation-du-dataset/recherche.ts";
 import { chargeLeModele } from "../entrainement/modele.ts";
 import { litLaNormalisation, normaliseLesCaracteristiques } from "../entrainement/normalisation.ts";
 

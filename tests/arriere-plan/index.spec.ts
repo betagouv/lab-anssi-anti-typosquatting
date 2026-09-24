@@ -1,4 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { readFile } from "node:fs/promises";
+
+import type { ResultatDeComparaison } from "../../src/arriere-plan/comparaison.ts";
 
 interface Navigation {
   readonly tabId: number;
@@ -14,7 +17,7 @@ const { navigations, messages, miseAJourDeLOnglet, badge, stockage } = vi.hoiste
     messages: [] as ((
       message: unknown,
       expediteur: unknown,
-    ) => Promise<void>)[],
+    ) => Promise<unknown>)[],
     miseAJourDeLOnglet: vi.fn(),
     badge: {
       setBadgeText: vi.fn(),
@@ -30,7 +33,7 @@ vi.mock("webextension-polyfill", () => ({
     runtime: {
       getURL: (chemin: string) => `moz-extension://test/${chemin}`,
       onMessage: {
-        addListener: (ecouteur: (m: unknown, e: unknown) => Promise<void>) => {
+        addListener: (ecouteur: (m: unknown, e: unknown) => Promise<unknown>) => {
           messages.push(ecouteur);
         },
       },
@@ -76,6 +79,17 @@ const demandeLAutorisation = async (domaine: string): Promise<void> => {
       { tab: { id: ONGLET } },
     );
   }
+};
+
+const demandeLaComparaison = async (url: string): Promise<ResultatDeComparaison> =>
+  await messages[0]!({ type: "compare-les-methodes", url }, {}) as ResultatDeComparaison;
+
+const simuleLesFichiersDuModele = (): void => {
+  vi.stubGlobal("fetch", vi.fn(async (url: string) => {
+    const nom = url.endsWith("essai.json") ? "essai.json" : "essai.bin";
+    const contenu = await readFile(new URL(`../../public/modele/${nom}`, import.meta.url));
+    return new Response(new Uint8Array(contenu));
+  }));
 };
 
 const pageDAlerteAffichee = (): URLSearchParams | null => {
@@ -164,6 +178,34 @@ describe("L'arrière-plan", () => {
     await navigueVers("https://belley.free.fr/");
     await navigueVers("https://belley.wixsite.com/site");
     expect(miseAJourDeLOnglet).not.toHaveBeenCalled();
+  });
+
+  it("compare les deux méthodes, y compris lorsque les règles ne signalent rien", async () => {
+    simuleLesFichiersDuModele();
+    try {
+      const legitime = await demandeLaComparaison("https://www.belley.fr/");
+      expect(legitime.etat).toBe("analyse");
+      if (legitime.etat !== "analyse") throw new Error("Résultat inattendu.");
+      expect(legitime.regles).toBeNull();
+      expect(legitime.modele?.correspondanceExacte).toBe(true);
+
+      const alerte = await demandeLaComparaison(UN_SOUS_DOMAINE_TROMPEUR);
+      expect(alerte.etat).toBe("analyse");
+      if (alerte.etat !== "analyse") throw new Error("Résultat inattendu.");
+      expect(alerte.regles?.severite).toBe("blocage");
+      expect(alerte.modele?.score).toEqual(expect.any(Number));
+
+      const modeleSeul = await demandeLaComparaison("https://lpileejanty.com/");
+      expect(modeleSeul.etat).toBe("analyse");
+      if (modeleSeul.etat !== "analyse") throw new Error("Résultat inattendu.");
+      expect(modeleSeul.regles).toBeNull();
+      expect(modeleSeul.modele?.decision).toBe("suspect");
+
+      expect((await demandeLaComparaison("https://belley.free.fr/")).etat).toBe("hors-perimetre");
+      expect((await demandeLaComparaison("about:blank")).etat).toBe("non-analysable");
+    } finally {
+      vi.unstubAllGlobals();
+    }
   });
 
   describe("quand l'utilisateur passe outre", () => {

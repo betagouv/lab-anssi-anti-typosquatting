@@ -1,16 +1,12 @@
 import { readFile } from "node:fs/promises";
 
-import { colonnesDesCaracteristiques } from "../creation-du-dataset/caracteristiques.ts";
+import { colonnesDesCaracteristiques } from "../../src/noyau/modele/caracteristiques.ts";
+import { normaliseLesCaracteristiques, type Normalisation } from "../../src/noyau/modele/normalisation.ts";
 import { cheminsDesResultats } from "../commun/chemins.ts";
-import { ecritJson, parcourtLeCsv, type LigneCsv } from "../commun/fichiers.ts";
+import { ecritJson, parcourtLeCsv } from "../commun/fichiers.ts";
 
-export interface Normalisation {
-  readonly colonnes: string[];
-  readonly moyennes: Record<string, number>;
-  readonly echelles: Record<string, number>;
-  readonly constantes: Record<string, boolean>;
-  readonly nombreDeLignes: number;
-}
+export { normaliseLesCaracteristiques };
+export type { Normalisation };
 
 export const calculeLaNormalisation = async (repertoire: string): Promise<Normalisation> => {
   const chemins = cheminsDesResultats(repertoire);
@@ -50,17 +46,6 @@ export interface Lot {
   readonly caracteristiques: number[][];
   readonly cibles: number[];
 }
-
-export const normaliseLesCaracteristiques = (
-  ligne: LigneCsv,
-  normalisation: Normalisation,
-): number[] => normalisation.colonnes.map((colonne) => {
-  const valeur = Number(ligne[colonne]);
-  const normalisee = normalisation.constantes[colonne] ? 0 :
-    (valeur - normalisation.moyennes[colonne]!) / normalisation.echelles[colonne]!;
-  if (!Number.isFinite(normalisee)) throw new Error(`Caractéristique invalide : ${colonne}`);
-  return normalisee;
-});
 
 export async function* parcourtLesLots(
   fichier: string,
