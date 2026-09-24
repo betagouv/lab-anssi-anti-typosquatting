@@ -16,6 +16,10 @@ const profilFirefox = {
 
 export default defineConfig({
   server: {
+    // Le plugin référence le serveur de développement sur 5173 dans les pages
+    // de l’extension ; il ne faut pas démarrer silencieusement sur un autre port.
+    port: 5173,
+    strictPort: true,
     watch: {
       ignored: ["**/profil-firefox-dev/**", "**/dist/**", "**/donnees-sources/**"],
     },
