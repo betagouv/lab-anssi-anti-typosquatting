@@ -7,42 +7,71 @@
     <link rel="stylesheet" href="./style.css">
 </head>
 <body>
-<main>
-    <div>
-        <div class="badge">
-            <img src="/avertissement.svg" alt=""/>
-            <span>Site web non sécurisé</span>
-        </div>
-        <h1>Cette page n’est pas sûre</h1>
-        <h2 id="domaine-visite"></h2>
-        <div class="bloc-risque">
-            <p id="motif">Risque</p>
-            <div class="score">
-                <span id="score"></span>
-                <div class="barre-de-progression"></div>
-            </div>
-        </div>
-        <p class="contenu">
-            Ce site pourrait contenir des contenus dangereux susceptibles de vous nuire. Il a été bloqué
-            pour garantir votre sécurité en ligne.
-            <br>
-            <br>
-            Vous cherchiez peut-être à accéder à ce site sécurisé :
-            <a id="domaine-imite"></a>
+<main class="contenu">
+    <div class="texte">
+        <p class="badge">
+            <img src="/avertissement.svg" alt="" width="12" height="12"/>
+            <span>Site web suspect</span>
         </p>
+
+        <h1>Ce site pourrait ne pas être sécurisé.</h1>
+
+        <p class="domaine-visite" id="domaine-visite"></p>
+
+        <section class="bloc-risque" aria-labelledby="intitule-risque">
+            <p class="intitule" id="intitule-risque">Risque</p>
+            <div class="mesure">
+                <p class="score" id="score"></p>
+                <div class="jauge">
+                    <div class="remplissage"></div>
+                </div>
+            </div>
+        </section>
+
+        <p class="motif" id="motif"></p>
+
+        <p class="corps">
+            ⚠️ Attention : le site que vous vous apprêtez à visiter pourrait être dangereux.
+            <br>
+            L’adresse que vous avez saisie ressemble beaucoup à celle d’un site de confiance…
+            mais elle est différente.
+        </p>
+
+        <p class="corps">
+            Vous cherchiez peut-être à accéder au site de confiance :
+            <a id="domaine-imite" href="#"></a>
+        </p>
+
         <div class="actions">
-            <button class="primaire" id="retour" type="button">Retour</button>
-            <button class="secondaire" id="visiter-quand-meme" type="button">Visiter quand même</button>
+            <button class="bouton primaire" id="retour" type="button">Retour</button>
+            <button class="bouton secondaire" id="visiter-quand-meme" type="button">Visiter quand même</button>
         </div>
+
         <p class="signalement">
-            Vous êtes responsable de ce site et estimez qu'il s'agit d'une erreur&nbsp;?
-            <a id="signaler" href="https://github.com/betagouv/lab-anssi-anti-typosquatting/issues" target="_blank" rel="noreferrer">Signalez-le</a>
+            <a class="bouton tertiaire" id="signaler" href="#">
+                <img src="/enveloppe.svg" alt="" width="14" height="12"/>
+                <span>Vous êtes le propriétaire du site ? Contacter notre équipe</span>
+            </a>
         </p>
     </div>
-    <div class="conteneur-image">
-        <img src="/illustration.svg" alt=""/>
+
+    <div class="media">
+        <img src="/illustration.svg" alt="" width="584" height="306"/>
     </div>
 </main>
+
+<footer class="pied-de-page">
+    <img class="separateur" src="/marque/separateur.svg" alt="" width="1440" height="2"/>
+    <div class="marque">
+        <div class="bloc-marque">
+            <img src="/marque/marianne.svg" alt="" width="55" height="20"/>
+            <p class="institution">République<br>Française</p>
+            <img src="/marque/devise.svg" alt="Liberté Égalité Fraternité" width="52" height="37"/>
+        </div>
+        <img class="logo-anssi" src="/marque/anssi.svg" alt="Agence nationale de la sécurité des systèmes d’information" width="66" height="66"/>
+    </div>
+</footer>
+
 <script type="module" src="./principal.ts"></script>
 </body>
 </html>
