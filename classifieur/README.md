@@ -95,6 +95,9 @@ Ici, `valide` signifie seulement qu'aucune proximité trompeuse suffisante n'a �
 npm run typecheck
 npm run lint
 npm test
+npm run classifieur:verifier-chaine
 ```
 
-Le code est organisé par étapes dans `creation-du-dataset/`, `entrainement/`, `evaluation/` et `inference/`. `commun/` regroupe les accès aux fichiers et `ligne-de-commande/` expose les commandes ci-dessus.
+`classifieur:verifier-chaine` est le contrôle de bout en bout exécuté en CI. Il génère des exemples à partir de `src/donnees/domaines-legitimes.txt`, retient exactement dix lignes (six pour l'entraînement, deux pour la validation et deux pour le test), avec les deux classes dans chaque répartition et sans mélanger les variantes d'un domaine source entre répartitions. Il normalise, entraîne pendant une époque, évalue et prédit une URL absente de la liste. La commande vérifie les artefacts et la validité numérique de la prédiction ; elle n'impose aucun score ni verdict. Tous ses fichiers sont créés dans un répertoire temporaire supprimé à la fin.
+
+Le code est organisé par étapes dans `creation-du-dataset/`, `entrainement/`, `evaluation/`, `inference/` et `verification/`. `commun/` regroupe les accès aux fichiers et `ligne-de-commande/` expose les commandes usuelles.

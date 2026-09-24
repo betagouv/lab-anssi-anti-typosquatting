@@ -25,7 +25,8 @@
     "classifieur:evaluer": "node classifieur/ligne-de-commande/commande.ts evaluer",
     "classifieur:predire": "node classifieur/ligne-de-commande/commande.ts predire",
     "classifieur:chaine": "node classifieur/ligne-de-commande/commande.ts chaine",
-    "classifieur:essai": "node classifieur/ligne-de-commande/commande.ts essai"
+    "classifieur:essai": "node classifieur/ligne-de-commande/commande.ts essai",
+    "classifieur:verifier-chaine": "node classifieur/verification/verifier-chaine.ts"
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",
