@@ -68,6 +68,8 @@ Depuis l'interstitiel, « Visiter quand même » enregistre une exception de 24 
 
 ## Les données
 
+L'entraînement et l'essai local du classifieur sont décrits dans [son README](classifieur/README.md). Il repart de la liste légitime versionnée ; le modèle n'est pas encore utilisé par l'extension.
+
 `src/donnees/domaines-legitimes.txt` est **généré**, pas édité à la main :
 
 ```bash
