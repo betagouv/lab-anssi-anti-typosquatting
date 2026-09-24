@@ -1,6 +1,6 @@
 # Classifieur de typosquatting
 
-Ce dossier permet de créer un jeu d'exemples, d'entraîner un modèle TensorFlow.js, de l'évaluer et d'essayer localement une URL avec les poids obtenus. Le modèle expérimental entraîné sur toute la liste légitime est exporté dans l'extension pour comparer son résultat aux règles actuelles.
+Ce dossier permet de créer un jeu d'exemples, d'entraîner un modèle TensorFlow.js, de l'évaluer et d'essayer localement une URL avec les poids obtenus. Un modèle d'essai exporté est inclus dans l'extension pour comparer son résultat aux règles actuelles.
 
 ## Installer le projet
 
@@ -91,19 +91,17 @@ La commande exige `modele/poids.json`, `modele/normalisation.json`, `rapports/ev
 
 Ici, `valide` signifie seulement qu'aucune proximité trompeuse suffisante n'a été détectée avec la liste de référence. Les exemples d'apprentissage étant synthétiques, le score ne représente pas une probabilité opérationnelle de fraude. Le seuil et le F1 sont choisis sur le jeu de test, comme dans le prototype : le F1 affiché reste une mesure exploratoire.
 
-## Exporter le modèle complet pour l'extension
+## Exporter le modèle d'essai pour l'extension
 
-Le modèle actuellement embarqué est entraîné sur toute la liste versionnée (`--limite=0`) avec la graine `20260917`, quatre imitations, quatre exemples intermédiaires et deux exemples distants par domaine. Il suit jusqu'à 25 époques, avec arrêt anticipé si la validation ne progresse plus. Pour le régénérer :
+La version embarquée est entraînée avec les paramètres de `classifieur:essai` : 1 000 domaines sources, graine `20260917`, jusqu'à 12 époques. Après un entraînement et son évaluation :
 
 ```bash
-npm run classifieur:chaine
-npm run classifieur:exporter-modele -- classifieur/resultats
+npm run classifieur:essai
+npm run classifieur:exporter-modele
 npm run classifieur:verifier-export
 ```
 
-L'export écrit `public/modele/essai.bin` (poids float32) et `public/modele/essai.json` (ordre des colonnes, normalisation, seuil, empreintes et paramètres). Le nom `essai` est conservé pour que l'extension charge le fichier sans changement de code. Ces fichiers versionnés sont embarqués dans les paquets Chrome et Firefox. La commande d'export refuse une liste source, des poids, une architecture ou une normalisation incompatibles ; `classifieur:verifier-export` vérifie de nouveau l'export sans entraîner le modèle. Si la liste légitime change, réentraîner et exporter avant de livrer l'extension.
-
-`classifieur:essai` reste disponible pour un entraînement rapide sur 1 000 domaines sources. Il ne doit pas remplacer les poids complets destinés à l'extension.
+L'export écrit `public/modele/essai.bin` (poids float32) et `public/modele/essai.json` (ordre des colonnes, normalisation, seuil, empreintes et paramètres). Ces deux fichiers sont versionnés et embarqués dans les paquets Chrome et Firefox. La commande d'export refuse une liste source, des poids, une architecture ou une normalisation incompatibles ; `classifieur:verifier-export` vérifie de nouveau l'export sans entraîner le modèle. Si la liste légitime change, réentraîner et exporter avant de livrer l'extension.
 
 L'inférence de l'extension utilise un calcul TypeScript limité aux trois couches du modèle. Le test de parité compare ses scores à TensorFlow.js. La fenêtre ouverte depuis l'icône affiche le résultat expérimental et celui des règles pour le domaine courant ; seul ce dernier pilote les alertes.
 
