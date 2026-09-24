@@ -23,5 +23,5 @@
     "skipLibCheck": true,
     "noEmit": true
   },
-  "include": ["src", "tests", "scripts", "*.config.ts", "types"]
+  "include": ["src", "tests", "scripts", "classifieur", "*.config.ts", "types"]
 }

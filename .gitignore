@@ -5,6 +5,8 @@ node_modules/
 dist/
 web-ext-artifacts/
 *.zip
+classifieur/resultats/
+classifieur/resultats-essai/
 
 # Jeu de données source, régénérable via npm run genere:domaines
 donnees-sources/

@@ -17,10 +17,19 @@
     "test:watch": "vitest",
     "lint:ext": "npm run build:firefox && web-ext lint --source-dir=dist/firefox --self-hosted",
     "genere:domaines": "node scripts/genere-les-domaines-legitimes.ts",
-    "test:complet": "VERIFICATION_COMPLETE=1 vitest run"
+    "test:complet": "VERIFICATION_COMPLETE=1 vitest run",
+    "classifieur:generer": "node classifieur/ligne-de-commande/commande.ts generer",
+    "classifieur:repartir": "node classifieur/ligne-de-commande/commande.ts repartir",
+    "classifieur:normaliser": "node classifieur/ligne-de-commande/commande.ts normaliser",
+    "classifieur:entrainer": "node classifieur/ligne-de-commande/commande.ts entrainer",
+    "classifieur:evaluer": "node classifieur/ligne-de-commande/commande.ts evaluer",
+    "classifieur:predire": "node classifieur/ligne-de-commande/commande.ts predire",
+    "classifieur:chaine": "node classifieur/ligne-de-commande/commande.ts chaine",
+    "classifieur:essai": "node classifieur/ligne-de-commande/commande.ts essai"
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",
+    "@types/node": "24.13.6",
     "@types/webextension-polyfill": "0.12.6",
     "eslint": "10.10.0",
     "typescript": "6.0.3",
@@ -31,6 +40,7 @@
     "web-ext": "10.6.0"
   },
   "dependencies": {
+    "@tensorflow/tfjs": "4.22.0",
     "punycode.js": "2.3.1",
     "tldts": "7.4.13",
     "webextension-polyfill": "0.12.0"
