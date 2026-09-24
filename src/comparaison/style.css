@@ -23,7 +23,6 @@
 }
 
 :root {
-  font-family: Marianne, system-ui, sans-serif;
   color: #161616;
   background: #fff;
   font-synthesis: none;
@@ -43,9 +42,10 @@
   box-sizing: border-box;
 }
 
-body {
+html body {
   width: 600px;
   margin: 0;
+  font-family: Marianne, system-ui, sans-serif;
 }
 
 main {
