@@ -13,7 +13,8 @@ import {
   normaliseLeNomDHote,
 } from "../noyau/normalisation.ts";
 import { autoriseLeDomaine, domainesAutorises } from "./exceptions.ts";
-import { estUneDemandeDAutorisation } from "./messages.ts";
+import { compareLesMethodes } from "./comparaison.ts";
+import { estUneDemandeDAutorisation, estUneDemandeDeComparaison } from "./messages.ts";
 
 const ID_DU_CADRE_PRINCIPAL = 0;
 const COULEUR_DU_BADGE = "#B34000";
@@ -116,6 +117,9 @@ browser.runtime.onMessage.addListener(async (
   message: unknown,
   expediteur: Expediteur,
 ) => {
+  if (estUneDemandeDeComparaison(message)) {
+    return compareLesMethodes(indexDesDomainesLegitimes(), domainesExclus, message.url);
+  }
   if (!estUneDemandeDAutorisation(message)) return;
 
   const demande = normaliseLeNomDHote(message.domaine);

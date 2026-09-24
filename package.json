@@ -26,7 +26,9 @@
     "classifieur:predire": "node classifieur/ligne-de-commande/commande.ts predire",
     "classifieur:chaine": "node classifieur/ligne-de-commande/commande.ts chaine",
     "classifieur:essai": "node classifieur/ligne-de-commande/commande.ts essai",
-    "classifieur:verifier-chaine": "node classifieur/verification/verifier-chaine.ts"
+    "classifieur:verifier-chaine": "node classifieur/verification/verifier-chaine.ts",
+    "classifieur:exporter-modele": "node classifieur/exportation/exporter-modele.ts",
+    "classifieur:verifier-export": "node classifieur/exportation/exporter-modele.ts verifier"
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",
