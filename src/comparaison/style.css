@@ -35,7 +35,6 @@
   --couleur-bordure: #ddd;
   --couleur-fond-secondaire: #f6f6f6;
   --couleur-essai: #6a6af4;
-  --largeur-fenetre: 640px;
 }
 
 *,
@@ -45,7 +44,7 @@
 }
 
 body {
-  width: min(var(--largeur-fenetre), 100vw);
+  width: 600px;
   margin: 0;
 }
 
@@ -159,15 +158,4 @@ h2 {
   color: var(--couleur-texte-secondaire);
   font-size: 12px;
   line-height: 18px;
-}
-
-@media (max-width: 420px) {
-  main {
-    padding: 20px 16px;
-  }
-
-  .resultats {
-    grid-template-columns: 1fr;
-    gap: 12px;
-  }
 }
