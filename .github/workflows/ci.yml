@@ -38,8 +38,10 @@ jobs:
         run: |
           npm run genere:domaines
           cp src/donnees/domaines-legitimes.txt /tmp/premiere-generation.txt
+          cp donnees/provenance-des-domaines.csv /tmp/premiere-provenance.csv
           npm run genere:domaines
           diff /tmp/premiere-generation.txt src/donnees/domaines-legitimes.txt
+          diff /tmp/premiere-provenance.csv donnees/provenance-des-domaines.csv
 
   classifieur:
     name: Chaîne du classifieur sur dix lignes
