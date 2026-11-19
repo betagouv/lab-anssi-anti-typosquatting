@@ -12,6 +12,8 @@ export interface DescriptionDeSource {
   readonly licence: string;
   readonly role: (typeof ROLES_CONNUS)[number];
   readonly recuperation: (typeof RECUPERATIONS_CONNUES)[number];
+  readonly recupereLe?: string;
+  readonly fichier?: string;
 }
 
 export const FICHIER_DU_MANIFESTE = join(
@@ -44,6 +46,14 @@ const verifieLaSource = (source: unknown, position: number): DescriptionDeSource
   }
   if (!String(champs["url"]).startsWith("https://")) {
     throw new Error(`${lieu} : l'URL doit commencer par https://.`);
+  }
+  if (champs["recuperation"] === "snapshot") {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(String(champs["recupereLe"]))) {
+      throw new Error(`${lieu} : « recupereLe » (AAAA-MM-JJ) est obligatoire pour un snapshot.`);
+    }
+    if (!estUneChaineNonVide(champs["fichier"])) {
+      throw new Error(`${lieu} : « fichier » est obligatoire pour un snapshot.`);
+    }
   }
   return source as DescriptionDeSource;
 };
