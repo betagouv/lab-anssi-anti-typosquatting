@@ -1,17 +1,22 @@
 import { createHash } from "node:crypto";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
-import { join, resolve } from "node:path";
+import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { cheminsDesResultats, RACINE_DU_DEPOT } from "../commun/chemins.ts";
+import {
+  cheminsDesResultats,
+  FICHIER_DES_METADONNEES_DU_MODELE_LIVRE,
+  FICHIER_DES_POIDS_DU_MODELE_LIVRE,
+  REPERTOIRE_DU_MODELE_LIVRE,
+} from "../commun/chemins.ts";
 import { litLesDomaines } from "../creation-du-dataset/domaines.ts";
 import { litLaProvenance } from "../creation-du-dataset/generation.ts";
 import { compacteLaNormalisation, developpeLaNormalisation, verifieLaNormalisation, type Normalisation } from "../../src/noyau/modele/normalisation.ts";
 import { DIMENSIONS_DU_MODELE, litLesPoids, NOMBRE_DE_POIDS, verifieLeModeleExporte, type ModeleExporte } from "../../src/noyau/modele/calcul.ts";
 
-const REPERTOIRE_DE_L_EXPORT = join(RACINE_DU_DEPOT, "public", "modele");
-const FICHIER_DES_METADONNEES = join(REPERTOIRE_DE_L_EXPORT, "essai.json");
-const FICHIER_DES_POIDS = join(REPERTOIRE_DE_L_EXPORT, "essai.bin");
+const REPERTOIRE_DE_L_EXPORT = REPERTOIRE_DU_MODELE_LIVRE;
+const FICHIER_DES_METADONNEES = FICHIER_DES_METADONNEES_DU_MODELE_LIVRE;
+const FICHIER_DES_POIDS = FICHIER_DES_POIDS_DU_MODELE_LIVRE;
 const empreinteDe = (contenu: Uint8Array): string => createHash("sha256").update(contenu).digest("hex");
 
 interface ModeleEnregistre {

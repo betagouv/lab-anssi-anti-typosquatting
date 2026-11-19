@@ -26,6 +26,7 @@
     "classifieur:predire": "node classifieur/ligne-de-commande/commande.ts predire",
     "classifieur:chaine": "node classifieur/ligne-de-commande/commande.ts chaine",
     "classifieur:essai": "node classifieur/ligne-de-commande/commande.ts essai",
+    "classifieur:reentrainer": "node classifieur/ligne-de-commande/commande.ts reentrainer",
     "classifieur:verifier-chaine": "node classifieur/verification/verifier-chaine.ts",
     "classifieur:exporter-modele": "node classifieur/exportation/exporter-modele.ts",
     "classifieur:verifier-export": "node classifieur/exportation/exporter-modele.ts verifier"
