@@ -2,6 +2,7 @@ import { existsSync, readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
+import { nomDHoteOuValeurBrute } from "./nom-d-hote.ts";
 import type { NomDHoteCandidat, Source } from "./types.ts";
 
 export const FICHIER_DU_SNAPSHOT = join(
@@ -14,14 +15,6 @@ export const FICHIER_DU_SNAPSHOT = join(
 );
 
 const TOUTES_LES_LIGNES_REPONDENT_EN_HTTP_200 = true;
-
-const nomDHoteOuValeurBrute = (valeur: string): string => {
-  try {
-    return new URL(valeur).hostname;
-  } catch {
-    return valeur;
-  }
-};
 
 export const litLesUrls = (contenu: string): NomDHoteCandidat[] =>
   contenu

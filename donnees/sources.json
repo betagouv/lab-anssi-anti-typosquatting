@@ -8,5 +8,13 @@
     "recuperation": "snapshot",
     "recupereLe": "2026-11-19",
     "fichier": "donnees/snapshots/adullact-urls.txt"
+  },
+  {
+    "id": "dpnt",
+    "nom": "Données de la présence numérique des territoires (ANCT), colonne site_internet",
+    "url": "https://www.data.gouv.fr/datasets/donnees-de-la-presence-numerique-des-territoires",
+    "licence": "Licence Ouverte 2.0",
+    "role": "legitime",
+    "recuperation": "telechargement"
   }
 ]
