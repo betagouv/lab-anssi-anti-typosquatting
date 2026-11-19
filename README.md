@@ -39,7 +39,7 @@ Pour charger l'extension à la main : `npm run build:all`, puis
 son domaine enregistrable — `www.belley.fr` et `mairie.belley.fr` deviennent `belley.fr` —
 puis comparé à une liste de domaines publics embarquée dans le paquet.
 
-Un index inversé de bigrammes ramène les 27 592 comparaisons à environ 256 candidats
+Un index inversé de bigrammes ramène les 27 633 comparaisons à environ 252 candidats
 avant tout calcul de distance. Compter : 250 ms pour construire l'index une fois par
 vie du service worker, puis 1 à 2 ms par navigation.
 
@@ -99,17 +99,21 @@ L'entraînement, l'export du modèle d'essai et sa vérification sont décrits d
 npm run genere:domaines
 ```
 
-Le script part de deux sources, déclarées avec leur licence dans `donnees/sources.json` :
+Le script part de trois sources, déclarées avec leur licence dans `donnees/sources.json` :
 
 - le fichier `urls.txt` du dépôt [`dinum/noms-de-domaine-organismes-secteur-public`][adullact],
   qui ne liste que des domaines répondant en HTTP 200. La forge bloque les scripts : le
   fichier est téléchargé à la main et versionné dans `donnees/snapshots/` ;
 - la colonne `site_internet` du jeu [présence numérique des territoires][dpnt] de l'ANCT,
-  téléchargée à chaque génération.
+  téléchargée à chaque génération ;
+- le [top 50 des marques les plus visitées en France][mediametrie] (Médiamétrie//NetRatings,
+  juillet 2026), dont le domaine principal de chaque marque est saisi à la main dans
+  `donnees/sources/mediametrie-2026-07.csv`.
 
 Il normalise les noms en domaine enregistrable, écarte les suffixes privés de la Public
 Suffix List et les plateformes listées dans `src/donnees/domaines-exclus.txt`. Résultat :
-27 592 domaines, 150 Ko compressés.
+27 633 domaines, 149 Ko compressés. Les plateformes de la liste d'exclusion écartent aussi
+des marques du classement (Google, Facebook, YouTube, Instagram, LinkedIn, X).
 
 `src/donnees/domaines-exclus.txt` est en revanche **maintenu à la main**. Il écarte les
 plateformes d'hébergement où de nombreuses communes publient : `free.fr` servait 431
@@ -120,10 +124,11 @@ La CI vérifie que la liste versionnée est identique à celle que produit le sc
 
 [adullact]: https://gitlab.adullact.net/dinum/noms-de-domaine-organismes-secteur-public
 [dpnt]: https://www.data.gouv.fr/datasets/donnees-de-la-presence-numerique-des-territoires
+[mediametrie]: https://www.mediametrie.fr/system/files/2026-08/C1-O-COM%202026%2008%2025%20CP%20Audience%20Internet%20Global%20Juillet%202026.pdf
 
 ## Ce que l'extension ne sait pas faire
 
-Les chiffres ci-dessous sont mesurés en évaluant chacun des 27 592 domaines de la liste
+Les chiffres ci-dessous sont mesurés en évaluant chacun des 27 633 domaines de la liste
 **comme s'il en était absent** — c'est-à-dire la situation d'un site public légitime que
 la liste ne couvre pas encore.
 
