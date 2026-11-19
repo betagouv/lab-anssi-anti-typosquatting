@@ -22,7 +22,13 @@ Toutes les commandes ci-dessous se lancent depuis cette racine. Elles fonctionne
 
 ## D'où viennent les données ?
 
-La seule entrée versionnée est [`src/donnees/domaines-legitimes.txt`](../src/donnees/domaines-legitimes.txt), la liste légitime déjà utilisée par l'extension. La chaîne ne lit ni le CSV externe du projet parent ni les fichiers du prototype `classifier`.
+L'entrée du classifieur est [`src/donnees/domaines-legitimes.txt`](../src/donnees/domaines-legitimes.txt), la liste légitime aussi utilisée par l'extension. Elle est générée par `npm run genere:domaines` à partir des sources déclarées dans [`donnees/sources.json`](../donnees/sources.json) (nom, URL, licence, rôle, mode de récupération) :
+
+| Source | Contenu | Récupération |
+| --- | --- | --- |
+| `adullact` | `urls.txt` du dépôt [`dinum/noms-de-domaine-organismes-secteur-public`](https://gitlab.adullact.net/dinum/noms-de-domaine-organismes-secteur-public), uniquement des domaines répondant en HTTP 200 | téléchargement manuel (la forge bloque les scripts), versionné dans `donnees/snapshots/adullact-urls.txt` |
+
+Pour ajouter une source : écrire `scripts/sources/<id>.ts`, la déclarer dans `donnees/sources.json` et dans `scripts/genere-les-domaines-legitimes.ts`, puis regénérer la liste et réentraîner le modèle d'essai.
 
 | Étape | Fichier lu | Fichier produit |
 | --- | --- | --- |
@@ -40,17 +46,19 @@ Train, la prédiction locale et l'extension emploient la même recherche de cand
 
 ## Flux de l'entraînement
 
-Du jeu de données public jusqu'au modèle embarqué. Les cylindres sont des fichiers, les rectangles des transformations (commande npm entre parenthèses). La liste légitime, la liste des plateformes exclues et le modèle exporté sont versionnés ; `donnees-sources/` et `classifieur/resultats/` sont régénérables et ignorés par Git.
+Des sources publiques jusqu'au modèle embarqué. Les cylindres sont des fichiers, les rectangles des transformations (commande npm entre parenthèses). Sont versionnés : le manifeste des sources, le snapshot Adullact, la liste légitime, la liste des plateformes exclues et le modèle exporté. `donnees-sources/` et `classifieur/resultats/` sont régénérables et ignorés par Git.
 
 ```mermaid
 flowchart TD
-    etalab[("domains.csv<br/>jeu etalab des organismes publics<br/>(téléchargé dans donnees-sources/)")]
+    adullact[("donnees/snapshots/adullact-urls.txt<br/>urls.txt de l'ADULLACT, domaines en HTTP 200<br/>(téléchargé à la main, versionné)")]
+    manifeste[("donnees/sources.json<br/>URL, licence, rôle de chaque source")]
     exclus[("src/donnees/domaines-exclus.txt<br/>plateformes à écarter")]
-    filtre["Filtrage<br/>(genere:domaines)<br/>répond en HTTP ou HTTPS 200, nom normalisable,<br/>hors suffixe privé, hors plateformes,<br/>étiquette de 4 caractères minimum"]
+    filtre["Filtrage par source<br/>(genere:domaines)<br/>nom normalisable, hors suffixe privé,<br/>hors plateformes, étiquette de 4 caractères minimum"]
     liste[("src/donnees/domaines-legitimes.txt<br/>liste légitime versionnée")]
 
-    etalab -- "lit les noms d'hôte" --> filtre
+    adullact -- "lit les URL, extrait le nom d'hôte" --> filtre
     exclus -- "écarte les plateformes" --> filtre
+    manifeste -. "déclare les sources<br/>(vérifié par un test)" .-> filtre
     filtre -- "écrit les domaines retenus, triés" --> liste
 
     generation["Génération des exemples<br/>(classifieur:generer)<br/>mutations synthétiques à partir de chaque domaine"]

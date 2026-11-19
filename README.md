@@ -39,7 +39,7 @@ Pour charger l'extension à la main : `npm run build:all`, puis
 son domaine enregistrable — `www.belley.fr` et `mairie.belley.fr` deviennent `belley.fr` —
 puis comparé à une liste de domaines publics embarquée dans le paquet.
 
-Un index inversé de bigrammes ramène les 23 476 comparaisons à environ 176 candidats
+Un index inversé de bigrammes ramène les 23 825 comparaisons à environ 216 candidats
 avant tout calcul de distance. Compter : 250 ms pour construire l'index une fois par
 vie du service worker, puis 1 à 2 ms par navigation.
 
@@ -99,10 +99,13 @@ L'entraînement, l'export du modèle d'essai et sa vérification sont décrits d
 npm run genere:domaines
 ```
 
-Le script part de [`etalab/noms-de-domaine-organismes-secteur-public`][etalab], ne retient
-que les domaines répondant en HTTP 200, les normalise en domaine enregistrable, écarte les
+Le script part du fichier `urls.txt` du dépôt [`dinum/noms-de-domaine-organismes-secteur-public`][adullact],
+qui ne liste que des domaines répondant en HTTP 200. La forge de l'ADULLACT bloque les
+scripts : le fichier est téléchargé à la main et versionné dans
+`donnees/snapshots/adullact-urls.txt`. Les sources sont déclarées, avec leur licence, dans
+`donnees/sources.json`. Le script normalise les noms en domaine enregistrable, écarte les
 suffixes privés de la Public Suffix List et les plateformes listées dans
-`src/donnees/domaines-exclus.txt`. Résultat : 23 476 domaines, 125 Ko compressés.
+`src/donnees/domaines-exclus.txt`. Résultat : 23 825 domaines, 131 Ko compressés.
 
 `src/donnees/domaines-exclus.txt` est en revanche **maintenu à la main**. Il écarte les
 plateformes d'hébergement où de nombreuses communes publient : `free.fr` servait 431
@@ -111,17 +114,17 @@ faux positifs de masse.
 
 La CI vérifie que la liste versionnée est identique à celle que produit le script.
 
-[etalab]: https://github.com/etalab/noms-de-domaine-organismes-secteur-public
+[adullact]: https://gitlab.adullact.net/dinum/noms-de-domaine-organismes-secteur-public
 
 ## Ce que l'extension ne sait pas faire
 
-Les chiffres ci-dessous sont mesurés en évaluant chacun des 23 476 domaines de la liste
+Les chiffres ci-dessous sont mesurés en évaluant chacun des 23 825 domaines de la liste
 **comme s'il en était absent** — c'est-à-dire la situation d'un site public légitime que
 la liste ne couvre pas encore.
 
-- **0,01 % sont bloqués à tort.** Deux cas subsistent : `aisne.com` face à `aisne.gouv.fr`,
-  et `mornas.fr` face à `momas.fr` via la confusion `rn` / `m`.
-- **6,6 % reçoivent un avertissement à tort.** Essentiellement des communes voisines aux
+- **0,004 % sont bloqués à tort.** Un seul cas subsiste : `mornas.fr` face à `momas.fr`
+  via la confusion `rn` / `m`.
+- **6,9 % reçoivent un avertissement à tort.** Essentiellement des communes voisines aux
   noms proches, ou un même organisme possédant plusieurs graphies de son domaine. C'est
   la raison pour laquelle ces classes n'interrompent pas la navigation.
 - **La liste ne couvre pas tout le secteur public**, et seuls les domaines répondant en
@@ -129,7 +132,7 @@ la liste ne couvre pas encore.
   donc être signalé, d'où le lien de signalement sur l'interstitiel.
 - **Les fautes de frappe sur les noms courts passent au travers.** La classe distance
   d'édition exige une étiquette d'au moins 8 caractères : `amelii.fr` n'est pas détecté.
-  Abaisser ce seuil à 6 ferait passer les avertissements à tort de 6,6 % à 9,8 %.
+  Abaisser ce seuil à 6 ferait passer les avertissements à tort de 6,9 % à 9,9 %.
 
 ## Licence
 
