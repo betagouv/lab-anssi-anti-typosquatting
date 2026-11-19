@@ -1,0 +1,10 @@
+[
+  {
+    "id": "etalab",
+    "nom": "Noms de domaine des organismes du secteur public (domains.csv)",
+    "url": "https://github.com/etalab/noms-de-domaine-organismes-secteur-public",
+    "licence": "Licence Ouverte 2.0",
+    "role": "legitime",
+    "recuperation": "telechargement"
+  }
+]
