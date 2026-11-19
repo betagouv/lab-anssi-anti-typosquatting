@@ -62,12 +62,21 @@ describe("Le manifeste des sources", () => {
     expect(() => verifieLeManifeste([incomplete])).toThrow(champ);
   });
 
+  it.each(["recupereLe", "fichier"])("refuse une saisie sans « %s »", (champ) => {
+    const incomplete: Record<string, string> = { ...sourceValide, recuperation: "saisie" };
+    delete incomplete[champ];
+    expect(() => verifieLeManifeste([incomplete])).toThrow(champ);
+  });
+
   it("refuse une date de récupération mal formée", () => {
     expect(() => verifieLeManifeste([{ ...sourceValide, recupereLe: "19/11/2026" }])).toThrow("recupereLe");
   });
 
-  it("référence des fichiers de snapshot qui existent", () => {
-    for (const source of litLeManifeste().filter(({ recuperation }) => recuperation === "snapshot")) {
+  it("référence des fichiers de snapshot et de saisie qui existent", () => {
+    const sourcesAvecFichier = litLeManifeste().filter(
+      ({ recuperation }) => recuperation === "snapshot" || recuperation === "saisie",
+    );
+    for (const source of sourcesAvecFichier) {
       expect(existsSync(new URL(`../../${source.fichier ?? ""}`, import.meta.url))).toBe(true);
     }
   });
