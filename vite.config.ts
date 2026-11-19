@@ -2,7 +2,7 @@ import { resolve } from "node:path";
 
 import { defineConfig } from "vite";
 import webExtension from "vite-plugin-web-extension";
-import { genereLeManifeste } from "./manifeste.config";
+import { genereLeManifeste } from "./manifeste.config.ts";
 
 const navigateurCible = process.env["TARGET_BROWSER"] ?? "chrome";
 
