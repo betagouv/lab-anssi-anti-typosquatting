@@ -17,13 +17,19 @@ import { MODE_D_ALERTE } from "./configuration.ts";
 import { alerteDeLOnglet, memoriseLAlerte, oublieLAlerte } from "./alertes-en-cours.ts";
 import { compareLesMethodes } from "./comparaison.ts";
 import {
+  afficheLEtat,
+  ETAT_NEUTRE,
+  etatDuVerdict,
+  lePlusGrave,
+  type EtatDeLOnglet,
+} from "./etat-de-l-onglet.ts";
+import {
   estUneDemandeDAlerteEnCours,
   estUneDemandeDAutorisation,
   estUneDemandeDeComparaison,
 } from "./messages.ts";
 
 const ID_DU_CADRE_PRINCIPAL = 0;
-const COULEUR_DU_BADGE = "#B34000";
 
 const domainesExclus = new Set(litLaListeDeDomaines(domainesExclusBruts));
 
@@ -56,47 +62,6 @@ const afficheLaPageDAlerte = async (
   });
 };
 
-const afficheLeBadgeDAvertissement = async (
-  idDeLOnglet: number,
-  verdict: Verdict,
-): Promise<void> => {
-  await browser.action.setBadgeText({ tabId: idDeLOnglet, text: "!" });
-  await browser.action.setBadgeBackgroundColor({
-    tabId: idDeLOnglet,
-    color: COULEUR_DU_BADGE,
-  });
-  await browser.action.setTitle({
-    tabId: idDeLOnglet,
-    title: `Ce domaine ressemble à ${verdict.domaineImite}`,
-  });
-};
-
-const estUneUrlWeb = (url: string | undefined): url is string =>
-  url !== undefined && /^https?:\/\//.test(url);
-
-const interromptLaNavigation = async (
-  navigation: Navigation,
-  verdict: Verdict,
-): Promise<void> => {
-  const onglet = await browser.tabs.get(navigation.tabId);
-  const urlDeRetour = estUneUrlWeb(onglet.url) ? onglet.url : "about:blank";
-  await memoriseLAlerte(navigation.tabId, { urlBloquee: navigation.url, urlDeRetour });
-  await browser.tabs.update(navigation.tabId, { url: urlDeRetour });
-  await afficheLeBadgeDAvertissement(navigation.tabId, verdict);
-  if (!onglet.active) return;
-  try {
-    await browser.action.openPopup(
-      onglet.windowId === undefined ? undefined : { windowId: onglet.windowId },
-    );
-  } catch (erreur) {
-    console.warn("Ouverture de la popup impossible", erreur);
-  }
-};
-
-const effaceLeBadge = async (idDeLOnglet: number): Promise<void> => {
-  await browser.action.setBadgeText({ tabId: idDeLOnglet, text: "" });
-};
-
 interface Navigation {
   readonly tabId: number;
   readonly frameId: number;
@@ -107,7 +72,58 @@ interface Expediteur {
   readonly tab?: { readonly id?: number };
 }
 
-const traiteLaNavigation = async (navigation: Navigation): Promise<void> => {
+interface EtatPrevu {
+  readonly urlDemandee: string;
+  readonly etat: EtatDeLOnglet;
+}
+
+const etatPrevuParOnglet = new Map<number, EtatPrevu>();
+const etatAfficheParOnglet = new Map<number, EtatDeLOnglet>();
+
+const estUneUrlWeb = (url: string | undefined): url is string =>
+  url !== undefined && /^https?:\/\//.test(url);
+
+const estLaPageDAlerte = (url: string): boolean =>
+  url.startsWith(browser.runtime.getURL("src/alerte/index.html"));
+
+const etatDeLaPageDAlerte = (url: string): EtatDeLOnglet => ({
+  niveau: "alerte",
+  domaineImite: new URL(url).searchParams.get("domaineImite") ?? "",
+});
+
+const etatDeLUrl = (url: string): EtatDeLOnglet => {
+  if (estLaPageDAlerte(url)) return etatDeLaPageDAlerte(url);
+  if (normaliseLUrl(url) === null) return ETAT_NEUTRE;
+  return etatDuVerdict(analyseLUrl(indexDesDomainesLegitimes(), domainesExclus, url));
+};
+
+const afficheLEtatSansBloquer = async (idDeLOnglet: number, etat: EtatDeLOnglet): Promise<void> => {
+  try {
+    await afficheLEtat(idDeLOnglet, etat);
+  } catch (erreur) {
+    console.error("Affichage de l'état de l'onglet impossible", erreur);
+  }
+};
+
+const ouvreLaPopup = async (idDeLaFenetre: number | undefined): Promise<void> => {
+  try {
+    await browser.action.openPopup(
+      idDeLaFenetre === undefined ? undefined : { windowId: idDeLaFenetre },
+    );
+  } catch (erreur) {
+    console.warn("Ouverture de la popup impossible", erreur);
+  }
+};
+
+const interromptLaNavigation = async (navigation: Navigation): Promise<void> => {
+  const onglet = await browser.tabs.get(navigation.tabId);
+  const urlDeRetour = estUneUrlWeb(onglet.url) ? onglet.url : "about:blank";
+  await memoriseLAlerte(navigation.tabId, { urlBloquee: navigation.url, urlDeRetour });
+  await browser.tabs.update(navigation.tabId, { url: urlDeRetour });
+  if (onglet.active) await ouvreLaPopup(onglet.windowId);
+};
+
+const traiteLaNavigationAvantChargement = async (navigation: Navigation): Promise<void> => {
   if (navigation.frameId !== ID_DU_CADRE_PRINCIPAL) return;
 
   if (MODE_D_ALERTE === "popup") {
@@ -117,41 +133,72 @@ const traiteLaNavigation = async (navigation: Navigation): Promise<void> => {
   }
 
   const visite = normaliseLUrl(navigation.url);
-  if (visite === null) return;
-
-  const verdict = analyseLUrl(
-    indexDesDomainesLegitimes(),
-    domainesExclus,
-    navigation.url,
-  );
-
-  const autorises = await domainesAutorises();
-  const estAutorise = autorises.has(visite.domaineEnregistrable);
-
-  if (verdict === null || estAutorise) {
-    await effaceLeBadge(navigation.tabId);
+  if (visite === null) {
+    etatPrevuParOnglet.delete(navigation.tabId);
     return;
   }
 
-  if (verdict.severite === "blocage") {
-    if (MODE_D_ALERTE === "page") {
-      await afficheLaPageDAlerte(navigation.tabId, verdict, visite.nomDHote);
-    } else {
-      await interromptLaNavigation(navigation, verdict);
-    }
-    return;
+  const verdict = analyseLUrl(indexDesDomainesLegitimes(), domainesExclus, navigation.url);
+  const etat = etatDuVerdict(verdict);
+  etatPrevuParOnglet.set(navigation.tabId, { urlDemandee: navigation.url, etat });
+
+  if (verdict?.severite !== "blocage") return;
+  if ((await domainesAutorises()).has(visite.domaineEnregistrable)) return;
+
+  if (MODE_D_ALERTE === "page") {
+    await afficheLaPageDAlerte(navigation.tabId, verdict, visite.nomDHote);
+  } else {
+    await interromptLaNavigation(navigation);
   }
-
-  await afficheLeBadgeDAvertissement(navigation.tabId, verdict);
+  await afficheLEtatSansBloquer(navigation.tabId, etat);
 };
 
-const ecouteLaNavigation = (navigation: Navigation): void => {
-  void traiteLaNavigation(navigation).catch((erreur: unknown) => {
-    console.error("Analyse de la navigation impossible", erreur);
-  });
+const etatDeLaNavigationEngagee = async (navigation: Navigation): Promise<EtatDeLOnglet> => {
+  const alerte = MODE_D_ALERTE === "popup" ? await alerteDeLOnglet(navigation.tabId) : null;
+  if (alerte?.urlDeRetour === navigation.url) return etatDeLUrl(alerte.urlBloquee);
+
+  const etatPrevu = etatPrevuParOnglet.get(navigation.tabId)?.etat ?? ETAT_NEUTRE;
+  etatPrevuParOnglet.delete(navigation.tabId);
+  return lePlusGrave(etatPrevu, etatDeLUrl(navigation.url));
 };
 
-browser.webNavigation.onBeforeNavigate.addListener(ecouteLaNavigation);
+const traiteLaNavigationEnErreur = async (navigation: Navigation): Promise<void> => {
+  if (navigation.frameId !== ID_DU_CADRE_PRINCIPAL) return;
+  const etatPrevu = etatPrevuParOnglet.get(navigation.tabId);
+  if (etatPrevu?.urlDemandee !== navigation.url) return;
+  etatPrevuParOnglet.delete(navigation.tabId);
+  etatAfficheParOnglet.set(navigation.tabId, etatPrevu.etat);
+  await afficheLEtatSansBloquer(navigation.tabId, etatPrevu.etat);
+};
+
+const traiteLaNavigationEngagee = async (navigation: Navigation): Promise<void> => {
+  if (navigation.frameId !== ID_DU_CADRE_PRINCIPAL) return;
+  const etat = await etatDeLaNavigationEngagee(navigation);
+  etatAfficheParOnglet.set(navigation.tabId, etat);
+  await afficheLEtatSansBloquer(navigation.tabId, etat);
+};
+
+const reafficheLEtatApresChargement = async (navigation: Navigation): Promise<void> => {
+  if (navigation.frameId !== ID_DU_CADRE_PRINCIPAL) return;
+  const etat = etatAfficheParOnglet.get(navigation.tabId);
+  if (etat !== undefined) await afficheLEtatSansBloquer(navigation.tabId, etat);
+};
+
+const ecoute = (traitement: (navigation: Navigation) => Promise<void>) =>
+  (navigation: Navigation): void => {
+    void traitement(navigation).catch((erreur: unknown) => {
+      console.error("Analyse de la navigation impossible", erreur);
+    });
+  };
+
+browser.webNavigation.onBeforeNavigate.addListener(ecoute(traiteLaNavigationAvantChargement));
+browser.webNavigation.onCommitted.addListener(ecoute(traiteLaNavigationEngagee));
+browser.webNavigation.onErrorOccurred.addListener(ecoute(traiteLaNavigationEnErreur));
+browser.webNavigation.onCompleted.addListener(ecoute(reafficheLEtatApresChargement));
+browser.tabs.onRemoved.addListener((idDeLOnglet) => {
+  etatPrevuParOnglet.delete(idDeLOnglet);
+  etatAfficheParOnglet.delete(idDeLOnglet);
+});
 
 browser.runtime.onMessage.addListener(async (
   message: unknown,

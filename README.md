@@ -63,6 +63,16 @@ badge. Le comportement historique,
 où un blocage remplace la page par un interstitiel, reste disponible : passer
 `MODE_D_ALERTE` à `"page"` dans `src/arriere-plan/configuration.ts`.
 
+L'icône de l'extension reflète l'état de l'onglet, avec les couleurs système du DSFR :
+fond vert (`#18753C`) pour un domaine sans imitation détectée, orange (`#B34000`) pour
+un avertissement, rouge (`#CE0500`) avec un badge « ! » pour un blocage. Les pages qui
+ne sont pas du web gardent l'icône bleue d'origine. L'état est calculé avant le
+chargement puis appliqué une fois la navigation engagée : un domaine suspect qui
+redirige vers un autre site garde donc son icône orange. Les sources sont
+`ressources/icone-{sain,suspicion,alerte}.svg`, converties en PNG avec
+`inkscape ressources/icone-<etat>.svg --export-type=png -w <taille> -h <taille>
+--export-filename=public/icone/<etat>/<taille>.png`.
+
 Un clic sur l'icône ouvre aussi une fenêtre de comparaison pour l'onglet courant. Elle
 affiche côte à côte le résultat des règles et celui d'un modèle d'essai, même si les
 règles ne signalent rien. Ce modèle a été entraîné sur 1 000 domaines sources et des
