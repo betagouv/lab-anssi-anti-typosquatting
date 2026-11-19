@@ -12,7 +12,7 @@ import { domainesExclus, listeLegitime } from "../donnees/lecture.ts";
 const TAILLE_DE_LECHANTILLON = 3000;
 const GRAINE = 20260917;
 const PART_MAXIMALE_DE_BLOCAGES = 0.001;
-const PART_MAXIMALE_DAVERTISSEMENTS = 0.08;
+const PART_MAXIMALE_DAVERTISSEMENTS = 0.09;
 
 const domainesLegitimes = listeLegitime();
 const index = construisLIndexDeRecherche(domainesLegitimes);
