@@ -1,6 +1,7 @@
 name: Fraîcheur de la liste légitime
 
-# Le jeu de données etalab évolue. Ce contrôle est hebdomadaire plutôt que
+# Les sources téléchargeables évoluent (le snapshot Adullact, lui, est versionné
+# et ne dérive pas). Ce contrôle est hebdomadaire plutôt que
 # rattaché aux pull requests, pour qu'une mise à jour en amont ne fasse jamais
 # échouer une modification sans rapport.
 on:

@@ -4,7 +4,7 @@ import { fileURLToPath } from "node:url";
 
 import { litLaListeDeDomaines } from "../src/noyau/liste-de-domaines.ts";
 import { selectionneLesDomainesLegitimes } from "./selection.ts";
-import { etalab } from "./sources/etalab.ts";
+import { adullact } from "./sources/adullact.ts";
 
 const racine = join(dirname(fileURLToPath(import.meta.url)), "..");
 const fichierGenere = join(racine, "src", "donnees", "domaines-legitimes.txt");
@@ -14,7 +14,7 @@ const domainesExclus = new Set(
   litLaListeDeDomaines(readFileSync(fichierDesExclusions, "utf-8")),
 );
 const { domainesLegitimes, comptes } = selectionneLesDomainesLegitimes(
-  await etalab.litLesNomsDHote(),
+  await adullact.litLesNomsDHote(),
   domainesExclus,
 );
 
