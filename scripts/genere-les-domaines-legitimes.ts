@@ -6,9 +6,10 @@ import { litLaListeDeDomaines } from "../src/noyau/liste-de-domaines.ts";
 import { selectionneLesDomainesLegitimes } from "./selection.ts";
 import { adullact } from "./sources/adullact.ts";
 import { dpnt } from "./sources/dpnt.ts";
+import { mediametrie } from "./sources/mediametrie.ts";
 import type { Source } from "./sources/types.ts";
 
-const SOURCES: readonly Source[] = [adullact, dpnt];
+const SOURCES: readonly Source[] = [adullact, dpnt, mediametrie];
 
 const racine = join(dirname(fileURLToPath(import.meta.url)), "..");
 const fichierGenere = join(racine, "src", "donnees", "domaines-legitimes.txt");

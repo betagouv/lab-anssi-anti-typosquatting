@@ -16,5 +16,15 @@
     "licence": "Licence Ouverte 2.0",
     "role": "legitime",
     "recuperation": "telechargement"
+  },
+  {
+    "id": "mediametrie",
+    "nom": "Top 50 des marques les plus visitées en France, juillet 2026 (Médiamétrie//NetRatings), domaine de chaque marque saisi à la main",
+    "url": "https://www.mediametrie.fr/system/files/2026-08/C1-O-COM%202026%2008%2025%20CP%20Audience%20Internet%20Global%20Juillet%202026.pdf",
+    "licence": "Copyright Médiamétrie, tous droits réservés : seuls les noms des 50 marques sont repris",
+    "role": "legitime",
+    "recuperation": "saisie",
+    "recupereLe": "2026-11-19",
+    "fichier": "donnees/sources/mediametrie-2026-07.csv"
   }
 ]

@@ -3,7 +3,7 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { gunzipSync } from "node:zlib";
 
-import { decoupeLaLigneCsv } from "./csv.ts";
+import { litLaColonneCsv } from "./csv.ts";
 import { nomDHoteOuValeurBrute } from "./nom-d-hote.ts";
 import { executeAvecReessais } from "./reessais.ts";
 import type { NomDHoteCandidat, Source } from "./types.ts";
@@ -48,24 +48,11 @@ const telecharge = async (): Promise<Buffer> => {
   return contenu;
 };
 
-export const litLeCsv = (csv: string): NomDHoteCandidat[] => {
-  const [entete, ...lignes] = csv.split(/\r?\n/);
-  if (entete === undefined) throw new Error("Jeu de données vide");
-
-  const colonne = decoupeLaLigneCsv(entete, ";").indexOf(COLONNE_DU_SITE);
-  if (colonne < 0) {
-    throw new Error(`Colonne « ${COLONNE_DU_SITE} » absente de l'en-tête : ${entete}`);
-  }
-
-  return lignes
-    .filter((ligne) => ligne.length > 0)
-    .map((ligne) => (decoupeLaLigneCsv(ligne, ";")[colonne] ?? "").trim())
-    .filter((site) => site.length > 0)
-    .map((site) => ({
-      nomDHote: nomDHoteOuValeurBrute(site),
-      joignable: SITE_DECLARE_SANS_TEST_DE_JOIGNABILITE,
-    }));
-};
+export const litLeCsv = (csv: string): NomDHoteCandidat[] =>
+  litLaColonneCsv(csv, ";", COLONNE_DU_SITE).map((site) => ({
+    nomDHote: nomDHoteOuValeurBrute(site),
+    joignable: SITE_DECLARE_SANS_TEST_DE_JOIGNABILITE,
+  }));
 
 export const dpnt: Source = {
   id: "dpnt",
