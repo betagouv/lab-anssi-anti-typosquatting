@@ -1,3 +1,4 @@
+import { executeLaChaine } from "../chaine/chaine.ts";
 import { cheminsDesResultats } from "../commun/chemins.ts";
 import { entraineLeModele } from "../entrainement/entrainement.ts";
 import { evalueLeModele } from "../evaluation/evaluation.ts";
@@ -52,19 +53,13 @@ switch (commande) {
     break;
   }
   case "chaine":
-  case "essai": {
-    const parametres = parametresDeGeneration(commande === "essai");
-    await genereLesDonnees(parametres);
-    await repartitLesDonnees(parametres.repertoire);
-    await calculeLaNormalisation(parametres.repertoire);
-    await entraineLeModele({
-      repertoire: parametres.repertoire,
+  case "essai":
+    await executeLaChaine({
+      generation: parametresDeGeneration(commande === "essai"),
       epoques: litEntier("epoques", commande === "essai" ? 12 : 25),
       tailleDuLot: litEntier("taille-du-lot", commande === "essai" ? 512 : 256),
     });
-    await evalueLeModele(parametres.repertoire);
     break;
-  }
   default:
     throw new Error(`Commande inconnue : ${commande ?? "aucune"}`);
 }
