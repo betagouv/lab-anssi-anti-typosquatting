@@ -2,91 +2,85 @@ import browser from "webextension-polyfill";
 
 import type { AlerteEnCours } from "../arriere-plan/alertes-en-cours.ts";
 import type { ResultatDeComparaison } from "../arriere-plan/comparaison.ts";
+import {
+  presentationDIndisponibilite,
+  presenteLeResultat,
+  type Presentation,
+} from "./presentation.ts";
 import { retrouveLUrlAAnalyser } from "./url-de-comparaison.ts";
 import "./style.css";
 
-const affiche = (identifiant: string, texte: string): void => {
-  const element = document.getElementById(identifiant);
-  if (element !== null) element.textContent = texte;
+interface OngletAnalyse {
+  readonly idDeLOnglet: number | null;
+  readonly url: string | null;
+  readonly alerte: AlerteEnCours | null;
+}
+
+const element = (identifiant: string): HTMLElement => {
+  const trouve = document.getElementById(identifiant);
+  if (trouve === null) throw new Error(`Élément #${identifiant} absent de la popup.`);
+  return trouve;
 };
 
-const pourcentage = (valeur: number): string => `${(valeur * 100).toFixed(1)} %`;
-
-const afficheLAlerteEnCours = (idDeLOnglet: number, alerte: AlerteEnCours): void => {
-  const bloc = document.getElementById("alerte");
-  if (bloc !== null) bloc.hidden = false;
-  document.getElementById("visiter-quand-meme")?.addEventListener("click", () => {
-    void browser.runtime.sendMessage({
-      type: "autorise-le-domaine",
-      domaine: new URL(alerte.urlBloquee).hostname,
-      idDeLOnglet,
-    }).then(() => { window.close(); });
-  });
-};
-
-const urlDeLOnglet = async (): Promise<string | null> => {
+const ongletAAnalyser = async (): Promise<OngletAnalyse> => {
   const onglet = (await browser.tabs.query({ active: true, currentWindow: true }))[0];
-  if (onglet?.id !== undefined) {
+  const idDeLOnglet = onglet?.id ?? null;
+  if (idDeLOnglet !== null) {
     const alerte: AlerteEnCours | null = await browser.runtime.sendMessage({
       type: "donne-l-alerte-en-cours",
-      idDeLOnglet: onglet.id,
+      idDeLOnglet,
     });
-    if (alerte !== null) {
-      afficheLAlerteEnCours(onglet.id, alerte);
-      return alerte.urlBloquee;
-    }
+    if (alerte !== null) return { idDeLOnglet, url: alerte.urlBloquee, alerte };
   }
-  if (onglet?.url === undefined) return null;
-  return retrouveLUrlAAnalyser(onglet.url, browser.runtime.getURL("src/alerte/index.html"));
+  const url = onglet?.url === undefined
+    ? null
+    : retrouveLUrlAAnalyser(onglet.url, browser.runtime.getURL("src/alerte/index.html"));
+  return { idDeLOnglet, url, alerte: null };
 };
 
-const afficheLeResultat = (resultat: ResultatDeComparaison): void => {
-  if (resultat.etat === "non-analysable") {
-    affiche("domaine", "Aucun domaine web analysable dans cet onglet.");
-    affiche("etat", "Page interne, URL non web ou domaine invalide.");
-    affiche("decision-regles", "Non analysé");
-    affiche("decision-modele", "Non analysé");
-    return;
-  }
-  affiche("domaine", resultat.domaine);
-  if (resultat.etat === "hors-perimetre") {
-    affiche("etat", "Domaine hors du périmètre de l’analyse.");
-    affiche("decision-regles", "Non analysé");
-    affiche("decision-modele", "Non analysé");
-    return;
-  }
-  const verdict = resultat.regles;
-  affiche("decision-regles", verdict === null ? "Aucune alerte" :
-    verdict.severite === "blocage" ? "Blocage" : "Avertissement");
-  affiche("details-regles", verdict === null ? "Aucune règle ne signale ce domaine." :
-    `Classe : ${verdict.classe}\nDomaine imité : ${verdict.domaineImite}\nScore de proximité : ${pourcentage(verdict.scoreDeSuspicion)}`);
-
-  const prediction = resultat.modele;
-  if (prediction === null) {
-    affiche("decision-modele", "Indisponible");
-    affiche("details-modele", "Le modèle n’a pas pu être chargé.");
-    return;
-  }
-  affiche("decision-modele", prediction.correspondanceExacte ? "Référence légitime" :
-    prediction.decision === "suspect" ? "Signalé par le modèle" : "Non signalé par le modèle");
-  affiche("details-modele", prediction.correspondanceExacte ? "Domaine présent dans la liste légitime." :
-    `Score expérimental : ${pourcentage(prediction.score)}\nSeuil : ${pourcentage(prediction.seuil)}\nDomaine proche : ${prediction.domaineProche ?? "aucun"}`);
-  affiche("etat", "Résultats calculés localement dans l’extension.");
+const naviguerQuandMeme = (idDeLOnglet: number, alerte: AlerteEnCours): void => {
+  void browser.runtime.sendMessage({
+    type: "autorise-le-domaine",
+    domaine: new URL(alerte.urlBloquee).hostname,
+    idDeLOnglet,
+  }).then(() => { window.close(); });
 };
 
-const compareLOnglet = async (): Promise<void> => {
-  const url = await urlDeLOnglet();
-  if (url === null) {
-    afficheLeResultat({ etat: "non-analysable", domaine: null });
-    return;
-  }
-  const resultat: ResultatDeComparaison = await browser.runtime.sendMessage({ type: "compare-les-methodes", url });
-  afficheLeResultat(resultat);
+const remplisLesDetails = (presentation: Presentation): void => {
+  const liste = element("liste-des-details");
+  liste.replaceChildren(...presentation.details.flatMap(({ libelle, valeur }) => {
+    const terme = document.createElement("dt");
+    terme.textContent = libelle;
+    const definition = document.createElement("dd");
+    definition.textContent = valeur;
+    return [terme, definition];
+  }));
+  element("details").hidden = presentation.details.length === 0;
 };
 
-void compareLOnglet().catch((erreur: unknown) => {
-  affiche("etat", "Comparaison indisponible.");
-  affiche("decision-regles", "Indisponible");
-  affiche("decision-modele", "Indisponible");
-  console.error("Comparaison impossible", erreur);
+const affiche = (presentation: Presentation, onglet: OngletAnalyse | null): void => {
+  element("alerte").className = `alerte alerte--${presentation.type}`;
+  element("titre-de-l-alerte").textContent = presentation.titre;
+  element("description-de-l-alerte").textContent = presentation.description;
+  remplisLesDetails(presentation);
+
+  const bouton = element("naviguer-quand-meme");
+  const alerte = onglet?.alerte ?? null;
+  const idDeLOnglet = onglet?.idDeLOnglet ?? null;
+  if (!presentation.peutNaviguerQuandMeme || alerte === null || idDeLOnglet === null) return;
+  bouton.hidden = false;
+  bouton.addEventListener("click", () => { naviguerQuandMeme(idDeLOnglet, alerte); });
+};
+
+const analyseLOnglet = async (): Promise<void> => {
+  const onglet = await ongletAAnalyser();
+  const resultat: ResultatDeComparaison = onglet.url === null
+    ? { etat: "non-analysable", domaine: null }
+    : await browser.runtime.sendMessage({ type: "compare-les-methodes", url: onglet.url });
+  affiche(presenteLeResultat(resultat, onglet.alerte?.urlBloquee ?? null), onglet);
+};
+
+void analyseLOnglet().catch((erreur: unknown) => {
+  affiche(presentationDIndisponibilite, null);
+  console.error("Analyse impossible", erreur);
 });

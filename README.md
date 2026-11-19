@@ -73,9 +73,11 @@ redirige vers un autre site garde donc son icône orange. Les sources sont
 `inkscape ressources/icone-<etat>.svg --export-type=png -w <taille> -h <taille>
 --export-filename=public/icone/<etat>/<taille>.png`.
 
-Un clic sur l'icône ouvre aussi une fenêtre de comparaison pour l'onglet courant. Elle
-affiche côte à côte le résultat des règles et celui d'un modèle d'essai, même si les
-règles ne signalent rien. Ce modèle a été entraîné sur 1 000 domaines sources et des
+Un clic sur l'icône ouvre la popup de l'onglet courant : une alerte (succès,
+avertissement ou erreur) résume le verdict des règles, et un accordéon « Détail de
+l'analyse » donne toutes les informations, y compris le résultat d'un modèle d'essai.
+Après une navigation interrompue, un bouton « Naviguer quand même » est proposé sous
+l'alerte. Ces composants imitent le DSFR en CSS, sans embarquer sa bibliothèque. Le modèle a été entraîné sur 1 000 domaines sources et des
 exemples synthétiques ; son score est exploratoire. Les règles seules continuent de
 déclencher les blocages et avertissements. Le calcul est local et le modèle est chargé
 uniquement à l'ouverture de la fenêtre.
