@@ -11,9 +11,11 @@ interface Navigation {
 
 const ONGLET = 42;
 
-const { navigations, messages, miseAJourDeLOnglet, badge, stockage } = vi.hoisted(
+const { navigations, navigationsEngagees, navigationsEnErreur, messages, miseAJourDeLOnglet, badge, stockage } = vi.hoisted(
   () => ({
     navigations: [] as ((navigation: Navigation) => void)[],
+    navigationsEngagees: [] as ((navigation: Navigation) => void)[],
+    navigationsEnErreur: [] as ((navigation: Navigation) => void)[],
     messages: [] as ((
       message: unknown,
       expediteur: unknown,
@@ -23,6 +25,7 @@ const { navigations, messages, miseAJourDeLOnglet, badge, stockage } = vi.hoiste
       setBadgeText: vi.fn(),
       setBadgeBackgroundColor: vi.fn(),
       setTitle: vi.fn(),
+      setIcon: vi.fn(),
     },
     stockage: { contenu: Object.create(null) as Record<string, unknown> },
   }),
@@ -44,8 +47,19 @@ vi.mock("webextension-polyfill", () => ({
           navigations.push(ecouteur);
         },
       },
+      onCommitted: {
+        addListener: (ecouteur: (navigation: Navigation) => void) => {
+          navigationsEngagees.push(ecouteur);
+        },
+      },
+      onCompleted: { addListener: () => undefined },
+      onErrorOccurred: {
+        addListener: (ecouteur: (navigation: Navigation) => void) => {
+          navigationsEnErreur.push(ecouteur);
+        },
+      },
     },
-    tabs: { update: miseAJourDeLOnglet },
+    tabs: { update: miseAJourDeLOnglet, onRemoved: { addListener: () => undefined } },
     action: badge,
     storage: {
       session: {
@@ -75,6 +89,21 @@ const laisseLesPromessesSeResoudre = async (): Promise<void> => {
 const navigueVers = async (url: string, frameId = 0): Promise<void> => {
   for (const ecouteur of navigations) ecouteur({ tabId: ONGLET, frameId, url });
   await laisseLesPromessesSeResoudre();
+};
+
+const engageLaNavigation = async (url: string, frameId = 0): Promise<void> => {
+  for (const ecouteur of navigationsEngagees) ecouteur({ tabId: ONGLET, frameId, url });
+  await laisseLesPromessesSeResoudre();
+};
+
+const navigueEtEngage = async (url: string): Promise<void> => {
+  await navigueVers(url);
+  await engageLaNavigation(url);
+};
+
+const iconeAffichee = (): string | undefined => {
+  const dernierAppel = badge.setIcon.mock.calls.at(-1) as [{ path: Record<number, string> }] | undefined;
+  return dernierAppel?.[0].path[16];
 };
 
 const demandeLAutorisation = async (domaine: string): Promise<void> => {
@@ -119,6 +148,7 @@ describe("L'arrière-plan en mode page", () => {
 
   it("s'abonne aux navigations et aux messages", () => {
     expect(navigations).toHaveLength(1);
+    expect(navigationsEngagees).toHaveLength(1);
     expect(messages).toHaveLength(1);
   });
 
@@ -147,29 +177,76 @@ describe("L'arrière-plan en mode page", () => {
     expect(parametres?.get("classe")).toBe("sous-domaine-trompeur");
   });
 
-  it("se contente d'un badge sur un domaine à avertir", async () => {
-    await navigueVers("https://belley.com/");
+  it("affiche l'icône verte sur un domaine sain, sans badge", async () => {
+    await navigueEtEngage("https://www.belley.fr/mairie");
+
+    expect(iconeAffichee()).toBe("/icone/sain/16.png");
+    expect(badge.setBadgeText).toHaveBeenLastCalledWith({ tabId: ONGLET, text: "" });
+  });
+
+  it("affiche l'icône orange sans badge sur un domaine suspect, sans bloquer", async () => {
+    await navigueEtEngage("https://belley.com/");
 
     expect(miseAJourDeLOnglet).not.toHaveBeenCalled();
-    expect(badge.setBadgeText).toHaveBeenCalledWith({
-      tabId: ONGLET,
-      text: "!",
-    });
-    expect(badge.setTitle).toHaveBeenCalledWith({
+    expect(iconeAffichee()).toBe("/icone/suspicion/16.png");
+    expect(badge.setBadgeText).toHaveBeenLastCalledWith({ tabId: ONGLET, text: "" });
+    expect(badge.setTitle).toHaveBeenLastCalledWith({
       tabId: ONGLET,
       title: "Ce domaine ressemble à belley.fr",
     });
   });
 
-  it("efface le badge en revenant sur un domaine sain", async () => {
-    await navigueVers("https://lemonde.fr/");
-    expect(badge.setBadgeText).toHaveBeenCalledWith({ tabId: ONGLET, text: "" });
+  it("affiche l'icône rouge et le badge sur la page d'alerte d'un domaine bloqué", async () => {
+    await navigueVers(UN_SOUS_DOMAINE_TROMPEUR);
+    const pageDAlerte = (miseAJourDeLOnglet.mock.calls[0] as [number, { url: string }])[1].url;
+    await navigueVers(pageDAlerte);
+    await engageLaNavigation(pageDAlerte);
+
+    expect(iconeAffichee()).toBe("/icone/alerte/16.png");
+    expect(badge.setBadgeText).toHaveBeenLastCalledWith({ tabId: ONGLET, text: "!" });
+    expect(badge.setBadgeBackgroundColor).toHaveBeenLastCalledWith({ tabId: ONGLET, color: "#CE0500" });
+  });
+
+  it("affiche l'icône orange quand le domaine suspect n'existe pas", async () => {
+    await navigueVers("https://service-publlic.fr/");
+    for (const ecouteur of navigationsEnErreur) {
+      ecouteur({ tabId: ONGLET, frameId: 0, url: "https://service-publlic.fr/" });
+    }
+    await laisseLesPromessesSeResoudre();
+
+    expect(iconeAffichee()).toBe("/icone/suspicion/16.png");
+  });
+
+  it("ignore l'erreur d'une navigation abandonnée au profit d'une autre", async () => {
+    await navigueVers("https://belley.com/");
+    await navigueVers("https://www.belley.fr/");
+    for (const ecouteur of navigationsEnErreur) {
+      ecouteur({ tabId: ONGLET, frameId: 0, url: "https://belley.com/" });
+    }
+    await laisseLesPromessesSeResoudre();
+
+    expect(badge.setIcon).not.toHaveBeenCalled();
+  });
+
+  it("garde l'état suspect quand le domaine redirige vers un site sans rapport", async () => {
+    await navigueVers("https://belley.com/");
+    await engageLaNavigation("https://www.lemonde.fr/");
+
+    expect(iconeAffichee()).toBe("/icone/suspicion/16.png");
+  });
+
+  it("revient à l'icône neutre sur une page qui n'est pas du web", async () => {
+    await navigueEtEngage("https://belley.com/");
+    await navigueEtEngage("about:blank");
+
+    expect(iconeAffichee()).toBe("/icone/16.png");
   });
 
   it("ignore les navigations d'iframe", async () => {
     await navigueVers(UN_SOUS_DOMAINE_TROMPEUR, 1);
+    await engageLaNavigation(UN_SOUS_DOMAINE_TROMPEUR, 1);
     expect(miseAJourDeLOnglet).not.toHaveBeenCalled();
-    expect(badge.setBadgeText).not.toHaveBeenCalled();
+    expect(badge.setIcon).not.toHaveBeenCalled();
   });
 
   it("ignore les schémas qui ne sont pas du web", async () => {

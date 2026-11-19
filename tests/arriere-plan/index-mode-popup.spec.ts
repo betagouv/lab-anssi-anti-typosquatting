@@ -10,9 +10,11 @@ const ONGLET = 42;
 const FENETRE = 7;
 const PAGE_PRECEDENTE = "https://www.service-public.fr/";
 
-const { navigations, messages, miseAJourDeLOnglet, onglet, action, session } =
+const { navigations, navigationsEngagees, navigationsEnErreur, messages, miseAJourDeLOnglet, onglet, action, session } =
   vi.hoisted(() => ({
     navigations: [] as ((navigation: Navigation) => void)[],
+    navigationsEngagees: [] as ((navigation: Navigation) => void)[],
+    navigationsEnErreur: [] as ((navigation: Navigation) => void)[],
     messages: [] as ((message: unknown, expediteur: unknown) => Promise<unknown>)[],
     miseAJourDeLOnglet: vi.fn(),
     onglet: { active: true, url: "" },
@@ -20,6 +22,7 @@ const { navigations, messages, miseAJourDeLOnglet, onglet, action, session } =
       setBadgeText: vi.fn(),
       setBadgeBackgroundColor: vi.fn(),
       setTitle: vi.fn(),
+      setIcon: vi.fn(),
       openPopup: vi.fn(),
     },
     session: { contenu: Object.create(null) as Record<string, unknown> },
@@ -41,9 +44,21 @@ vi.mock("webextension-polyfill", () => ({
           navigations.push(ecouteur);
         },
       },
+      onCommitted: {
+        addListener: (ecouteur: (navigation: Navigation) => void) => {
+          navigationsEngagees.push(ecouteur);
+        },
+      },
+      onCompleted: { addListener: () => undefined },
+      onErrorOccurred: {
+        addListener: (ecouteur: (navigation: Navigation) => void) => {
+          navigationsEnErreur.push(ecouteur);
+        },
+      },
     },
     tabs: {
       update: miseAJourDeLOnglet,
+      onRemoved: { addListener: () => undefined },
       get: (id: number) =>
         Promise.resolve({ id, windowId: FENETRE, active: onglet.active, url: onglet.url }),
     },
@@ -84,6 +99,16 @@ const navigueVers = async (url: string): Promise<void> => {
   await laisseLesPromessesSeResoudre();
 };
 
+const engageLaNavigation = async (url: string): Promise<void> => {
+  for (const ecouteur of navigationsEngagees) ecouteur({ tabId: ONGLET, frameId: 0, url });
+  await laisseLesPromessesSeResoudre();
+};
+
+const iconeAffichee = (): string | undefined => {
+  const dernierAppel = action.setIcon.mock.calls.at(-1) as [{ path: Record<number, string> }] | undefined;
+  return dernierAppel?.[0].path[16];
+};
+
 const demandeLAlerteEnCours = async (): Promise<unknown> =>
   await messages[0]!({ type: "donne-l-alerte-en-cours", idDeLOnglet: ONGLET }, {});
 
@@ -108,6 +133,30 @@ describe("L'arrière-plan en mode popup", () => {
     expect(miseAJourDeLOnglet).toHaveBeenCalledExactlyOnceWith(ONGLET, { url: PAGE_PRECEDENTE });
     expect(action.openPopup).toHaveBeenCalledWith({ windowId: FENETRE });
     expect(action.setBadgeText).toHaveBeenCalledWith({ tabId: ONGLET, text: "!" });
+  });
+
+  it("garde l'icône rouge sur la page de retour, même si le navigateur la réinitialise", async () => {
+    await navigueVers(UN_SOUS_DOMAINE_TROMPEUR);
+    await navigueVers(PAGE_PRECEDENTE);
+    await engageLaNavigation(PAGE_PRECEDENTE);
+
+    expect(iconeAffichee()).toBe("/icone/alerte/16.png");
+    expect(action.setBadgeText).toHaveBeenLastCalledWith({ tabId: ONGLET, text: "!" });
+    expect(action.setTitle).toHaveBeenLastCalledWith({
+      tabId: ONGLET,
+      title: "Ce domaine ressemble à impots.gouv.fr",
+    });
+  });
+
+  it("interrompt la navigation et ouvre la popup même si l'icône ne peut pas changer", async () => {
+    const erreurAffichee = vi.spyOn(console, "error").mockImplementation(() => undefined);
+    action.setIcon.mockRejectedValue(new Error("Could not load icon"));
+
+    await navigueVers(UN_SOUS_DOMAINE_TROMPEUR);
+
+    expect(miseAJourDeLOnglet).toHaveBeenCalledExactlyOnceWith(ONGLET, { url: PAGE_PRECEDENTE });
+    expect(action.openPopup).toHaveBeenCalledWith({ windowId: FENETRE });
+    erreurAffichee.mockRestore();
   });
 
   it("revient sur une page vierge quand il n'y avait pas de page web avant", async () => {
@@ -157,10 +206,11 @@ describe("L'arrière-plan en mode popup", () => {
 
   it("n'interrompt pas un simple avertissement", async () => {
     await navigueVers("https://belley.com/");
+    await engageLaNavigation("https://belley.com/");
 
     expect(miseAJourDeLOnglet).not.toHaveBeenCalled();
     expect(action.openPopup).not.toHaveBeenCalled();
-    expect(action.setBadgeText).toHaveBeenCalledWith({ tabId: ONGLET, text: "!" });
+    expect(iconeAffichee()).toBe("/icone/suspicion/16.png");
   });
 
   it("reprend la navigation bloquée quand l'utilisateur passe outre depuis la popup", async () => {
