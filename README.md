@@ -56,8 +56,12 @@ blocage ou du simple avertissement :
 | Manipulation de séparateurs | `agglosaintnazaire.fr` | Avertissement |
 | Distance d'édition | `service-publlic.fr` | Avertissement |
 
-Un **blocage** remplace la page par un interstitiel. Un **avertissement** pose un badge
-sur l'icône de l'extension et n'interrompt jamais la navigation.
+Un **blocage** interrompt la navigation avant toute redirection : l'onglet revient à la
+page précédente, un badge est posé et la popup de l'extension s'ouvre sur le domaine
+bloqué, avec un bouton « Visiter quand même ». Un **avertissement** pose seulement le
+badge. Le comportement historique,
+où un blocage remplace la page par un interstitiel, reste disponible : passer
+`MODE_D_ALERTE` à `"page"` dans `src/arriere-plan/configuration.ts`.
 
 Un clic sur l'icône ouvre aussi une fenêtre de comparaison pour l'onglet courant. Elle
 affiche côte à côte le résultat des règles et celui d'un modèle d'essai, même si les
@@ -70,7 +74,7 @@ Trois invariants : un domaine de la liste légitime n'est jamais signalé, un do
 explicitement exclu non plus, et le domaine désigné comme imité appartient toujours à la
 liste.
 
-Depuis l'interstitiel, « Visiter quand même » enregistre une exception de 24 heures dans
+Depuis la popup ou l'interstitiel, « Visiter quand même » enregistre une exception de 24 heures dans
 `browser.storage.local` avant de poursuivre la navigation.
 
 ## Les données

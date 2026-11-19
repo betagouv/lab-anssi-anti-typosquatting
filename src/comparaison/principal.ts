@@ -1,5 +1,6 @@
 import browser from "webextension-polyfill";
 
+import type { AlerteEnCours } from "../arriere-plan/alertes-en-cours.ts";
 import type { ResultatDeComparaison } from "../arriere-plan/comparaison.ts";
 import { retrouveLUrlAAnalyser } from "./url-de-comparaison.ts";
 import "./style.css";
@@ -11,8 +12,30 @@ const affiche = (identifiant: string, texte: string): void => {
 
 const pourcentage = (valeur: number): string => `${(valeur * 100).toFixed(1)} %`;
 
+const afficheLAlerteEnCours = (idDeLOnglet: number, alerte: AlerteEnCours): void => {
+  const bloc = document.getElementById("alerte");
+  if (bloc !== null) bloc.hidden = false;
+  document.getElementById("visiter-quand-meme")?.addEventListener("click", () => {
+    void browser.runtime.sendMessage({
+      type: "autorise-le-domaine",
+      domaine: new URL(alerte.urlBloquee).hostname,
+      idDeLOnglet,
+    }).then(() => { window.close(); });
+  });
+};
+
 const urlDeLOnglet = async (): Promise<string | null> => {
   const onglet = (await browser.tabs.query({ active: true, currentWindow: true }))[0];
+  if (onglet?.id !== undefined) {
+    const alerte: AlerteEnCours | null = await browser.runtime.sendMessage({
+      type: "donne-l-alerte-en-cours",
+      idDeLOnglet: onglet.id,
+    });
+    if (alerte !== null) {
+      afficheLAlerteEnCours(onglet.id, alerte);
+      return alerte.urlBloquee;
+    }
+  }
   if (onglet?.url === undefined) return null;
   return retrouveLUrlAAnalyser(onglet.url, browser.runtime.getURL("src/alerte/index.html"));
 };

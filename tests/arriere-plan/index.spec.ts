@@ -48,6 +48,9 @@ vi.mock("webextension-polyfill", () => ({
     tabs: { update: miseAJourDeLOnglet },
     action: badge,
     storage: {
+      session: {
+        get: (cle: string) => Promise.resolve({ [cle]: undefined }),
+      },
       local: {
         get: (cle: string) => Promise.resolve({ [cle]: stockage.contenu[cle] }),
         set: (valeurs: Record<string, unknown>) => {
@@ -58,6 +61,8 @@ vi.mock("webextension-polyfill", () => ({
     },
   },
 }));
+
+vi.mock("../../src/arriere-plan/configuration.ts", () => ({ MODE_D_ALERTE: "page" }));
 
 await import("../../src/arriere-plan/index.ts");
 
@@ -101,7 +106,7 @@ const pageDAlerteAffichee = (): URLSearchParams | null => {
 
 const UN_SOUS_DOMAINE_TROMPEUR = "https://impots.gouv.fr.connexion-securisee.com/";
 
-describe("L'arrière-plan", () => {
+describe("L'arrière-plan en mode page", () => {
   beforeEach(() => {
     stockage.contenu = {};
     miseAJourDeLOnglet.mockReset();
