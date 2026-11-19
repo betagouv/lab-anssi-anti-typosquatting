@@ -27,6 +27,7 @@ L'entrée du classifieur est [`src/donnees/domaines-legitimes.txt`](../src/donne
 | Source | Contenu | Récupération |
 | --- | --- | --- |
 | `adullact` | `urls.txt` du dépôt [`dinum/noms-de-domaine-organismes-secteur-public`](https://gitlab.adullact.net/dinum/noms-de-domaine-organismes-secteur-public), uniquement des domaines répondant en HTTP 200 | téléchargement manuel (la forge bloque les scripts), versionné dans `donnees/snapshots/adullact-urls.txt` |
+| `dpnt` | colonne `site_internet` du jeu [présence numérique des territoires](https://www.data.gouv.fr/datasets/donnees-de-la-presence-numerique-des-territoires) de l'ANCT, Licence Ouverte 2.0 | téléchargé à chaque génération, mis en cache dans `donnees-sources/` |
 
 Pour ajouter une source : écrire `scripts/sources/<id>.ts`, la déclarer dans `donnees/sources.json` et dans `scripts/genere-les-domaines-legitimes.ts`, puis regénérer la liste et réentraîner le modèle d'essai.
 
@@ -51,12 +52,14 @@ Des sources publiques jusqu'au modèle embarqué. Les cylindres sont des fichier
 ```mermaid
 flowchart TD
     adullact[("donnees/snapshots/adullact-urls.txt<br/>urls.txt de l'ADULLACT, domaines en HTTP 200<br/>(téléchargé à la main, versionné)")]
+    dpnt[("dpnt-quotidien.csv.gz<br/>présence numérique des territoires (ANCT)<br/>(téléchargé dans donnees-sources/)")]
     manifeste[("donnees/sources.json<br/>URL, licence, rôle de chaque source")]
     exclus[("src/donnees/domaines-exclus.txt<br/>plateformes à écarter")]
     filtre["Filtrage par source<br/>(genere:domaines)<br/>nom normalisable, hors suffixe privé,<br/>hors plateformes, étiquette de 4 caractères minimum"]
     liste[("src/donnees/domaines-legitimes.txt<br/>liste légitime versionnée")]
 
     adullact -- "lit les URL, extrait le nom d'hôte" --> filtre
+    dpnt -- "lit la colonne site_internet" --> filtre
     exclus -- "écarte les plateformes" --> filtre
     manifeste -. "déclare les sources<br/>(vérifié par un test)" .-> filtre
     filtre -- "écrit les domaines retenus, triés" --> liste
