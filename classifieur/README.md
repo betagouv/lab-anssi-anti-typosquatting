@@ -22,7 +22,13 @@ Toutes les commandes ci-dessous se lancent depuis cette racine. Elles fonctionne
 
 ## D'où viennent les données ?
 
-La seule entrée versionnée est [`src/donnees/domaines-legitimes.txt`](../src/donnees/domaines-legitimes.txt), la liste légitime déjà utilisée par l'extension. La chaîne ne lit ni le CSV externe du projet parent ni les fichiers du prototype `classifier`.
+L'entrée du classifieur est [`src/donnees/domaines-legitimes.txt`](../src/donnees/domaines-legitimes.txt), la liste légitime aussi utilisée par l'extension. Elle est générée par `npm run genere:domaines` à partir des sources déclarées dans [`donnees/sources.json`](../donnees/sources.json) (nom, URL, licence, rôle, mode de récupération) :
+
+| Source | Contenu | Récupération |
+| --- | --- | --- |
+| `adullact` | `urls.txt` du dépôt [`dinum/noms-de-domaine-organismes-secteur-public`](https://gitlab.adullact.net/dinum/noms-de-domaine-organismes-secteur-public), uniquement des domaines répondant en HTTP 200 | téléchargement manuel (la forge bloque les scripts), versionné dans `donnees/snapshots/adullact-urls.txt` |
+
+Pour ajouter une source : écrire `scripts/sources/<id>.ts`, la déclarer dans `donnees/sources.json` et dans `scripts/genere-les-domaines-legitimes.ts`, puis regénérer la liste et réentraîner le modèle d'essai.
 
 | Étape | Fichier lu | Fichier produit |
 | --- | --- | --- |
@@ -37,6 +43,127 @@ Les lignes positives sont des variantes synthétiques de domaines légitimes ; l
 Train, la prédiction locale et l'extension emploient la même recherche de candidats, les mêmes 157 caractéristiques et la même normalisation. La génération n'impose plus de référence parmi les candidats. Les URL sont ramenées au domaine enregistrable, comme dans l'extension.
 
 `rapports/provenance.json` contient l'empreinte SHA-256 du contenu source avec des fins de ligne LF, la graine et les paramètres de génération. Les résultats sont régénérables et ignorés par Git. Les poids peuvent varier légèrement d'une plateforme à l'autre.
+
+## Flux de l'entraînement
+
+Des sources publiques jusqu'au modèle embarqué. Les cylindres sont des fichiers, les rectangles des transformations (commande npm entre parenthèses). Sont versionnés : le manifeste des sources, le snapshot Adullact, la liste légitime, la liste des plateformes exclues et le modèle exporté. `donnees-sources/` et `classifieur/resultats/` sont régénérables et ignorés par Git.
+
+```mermaid
+flowchart TD
+    adullact[("donnees/snapshots/adullact-urls.txt<br/>urls.txt de l'ADULLACT, domaines en HTTP 200<br/>(téléchargé à la main, versionné)")]
+    manifeste[("donnees/sources.json<br/>URL, licence, rôle de chaque source")]
+    exclus[("src/donnees/domaines-exclus.txt<br/>plateformes à écarter")]
+    filtre["Filtrage par source<br/>(genere:domaines)<br/>nom normalisable, hors suffixe privé,<br/>hors plateformes, étiquette de 4 caractères minimum"]
+    liste[("src/donnees/domaines-legitimes.txt<br/>liste légitime versionnée")]
+
+    adullact -- "lit les URL, extrait le nom d'hôte" --> filtre
+    exclus -- "écarte les plateformes" --> filtre
+    manifeste -. "déclare les sources<br/>(vérifié par un test)" .-> filtre
+    filtre -- "écrit les domaines retenus, triés" --> liste
+
+    generation["Génération des exemples<br/>(classifieur:generer)<br/>mutations synthétiques à partir de chaque domaine"]
+    recherche["Recherche des 10 domaines<br/>de référence les plus proches<br/>puis calcul des 157 caractéristiques"]
+    jeu[("jeu-entrainement.csv<br/>1 ligne par exemple, classe 0 ou 1")]
+    provenance[("provenance.json<br/>empreinte SHA-256 de la liste, graine, paramètres")]
+
+    liste -- "lit chaque domaine légitime<br/>comme domaine source" --> generation
+    generation -- "positifs : imitations<br/>(leet, caractère retiré ou ajouté,<br/>transposition, tiret)" --> recherche
+    generation -- "négatifs : noms intermédiaires<br/>et noms distants" --> recherche
+    recherche -- "écrit une ligne par exemple<br/>avec sa classe" --> jeu
+    generation -. "enregistre l'empreinte de la liste,<br/>la graine et les paramètres" .-> provenance
+
+    repartition["Répartition<br/>(classifieur:repartir)<br/>hachage du domaine source :<br/>70 % entraînement, 15 % validation, 15 % test"]
+    csvEntrainement[("entrainement.csv")]
+    csvValidation[("validation.csv")]
+    csvTest[("test.csv")]
+
+    jeu -- "lit toutes les lignes" --> repartition
+    repartition -- "70 % des domaines sources" --> csvEntrainement
+    repartition -- "15 % des domaines sources" --> csvValidation
+    repartition -- "15 % des domaines sources" --> csvTest
+
+    normalisation["Normalisation<br/>(classifieur:normaliser)<br/>moyenne et écart-type par colonne,<br/>appris sur l'entraînement seul"]
+    paramNorm[("normalisation.json")]
+
+    csvEntrainement -- "calcule moyennes et écarts-types" --> normalisation
+    normalisation -- "enregistre les paramètres" --> paramNorm
+
+    entrainement["Entraînement<br/>(classifieur:entrainer)<br/>réseau 157, 32, 16, 1 ; perte binaryCrossentropy ;<br/>arrêt après 4 époques sans progrès en validation"]
+    poids[("poids.json<br/>meilleure époque en validation")]
+    rapportEntrainement[("entrainement.json<br/>historique des pertes")]
+
+    csvEntrainement -- "ajuste les poids, lot par lot" --> entrainement
+    csvValidation -- "mesure la perte à chaque époque" --> entrainement
+    paramNorm -- "met les caractéristiques à l'échelle" --> entrainement
+    entrainement -- "enregistre les poids<br/>à chaque amélioration" --> poids
+    entrainement -. "écrit l'historique des pertes" .-> rapportEntrainement
+
+    evaluation["Évaluation<br/>(classifieur:evaluer)<br/>seuil de 0,05 à 0,95 qui maximise le F1"]
+    rapportEvaluation[("evaluation.json<br/>seuil recommandé, mesures par seuil")]
+
+    csvTest -- "fournit des exemples jamais vus" --> evaluation
+    poids -- "charge le modèle<br/>et calcule un score par exemple" --> evaluation
+    paramNorm -- "met les caractéristiques à l'échelle" --> evaluation
+    evaluation -- "écrit le seuil retenu<br/>et les mesures par seuil" --> rapportEvaluation
+
+    export["Export<br/>(classifieur:exporter-modele)<br/>vérifie l'architecture et les empreintes,<br/>poids en float32"]
+    embarque[("public/modele/essai.bin et essai.json<br/>poids, normalisation compacte, seuil, empreintes<br/>versionnés et embarqués dans l'extension")]
+
+    poids -- "fournit les poids" --> export
+    paramNorm -- "fournit la normalisation" --> export
+    rapportEvaluation -- "fournit le seuil et l'empreinte du modèle" --> export
+    provenance -- "fournit l'empreinte de la liste<br/>et les paramètres de génération" --> export
+    export -- "écrit les poids en binaire<br/>et les métadonnées en JSON" --> embarque
+```
+
+Les étapes suivantes relisent `provenance.json` et refusent de continuer si la liste légitime a changé depuis la génération, ou si les poids ont changé depuis l'évaluation.
+
+## Flux de l'inférence
+
+Le même calcul sert à l'essai local (`classifieur:predire`, avec TensorFlow.js) et à l'extension (calcul TypeScript des trois couches, sur les fichiers exportés). Les caractéristiques et la normalisation viennent du même code, `src/noyau/modele/`.
+
+```mermaid
+flowchart TD
+    entree["URL ou domaine saisi"]
+    domaine["Normalisation<br/>domaine enregistrable<br/>(minuscules, punycode, suffixe public)"]
+    exacte{"Domaine présent<br/>dans la liste légitime ?"}
+    valideExact["valide<br/>correspondance exacte<br/>aucun calcul neuronal"]
+
+    liste[("domaines-legitimes.txt")]
+    recherche["Recherche des 10 domaines<br/>de référence les plus proches<br/>(Levenshtein, bigrammes, suffixe public)"]
+    caracteristiques["157 caractéristiques<br/>mêmes colonnes que l'entraînement"]
+    normalisation["Normalisation<br/>(x - moyenne) / écart-type<br/>paramètres appris à l'entraînement"]
+    reseau["Réseau dense<br/>157, 32 (ReLU), 16 (ReLU), 1 (sigmoïde)"]
+    score["Score entre 0 et 1"]
+    seuil{"Score supérieur<br/>ou égal au seuil ?"}
+    suspect["suspect<br/>proximité trompeuse"]
+    valide["valide<br/>proximité insuffisante"]
+
+    entree -- "extrait le nom d'hôte" --> domaine
+    domaine -- "domaine à tester" --> exacte
+    exacte -- "oui" --> valideExact
+    exacte -- "non" --> recherche
+    liste -- "sert à la comparaison exacte" --> exacte
+    liste -- "fournit les domaines de référence" --> recherche
+    recherche -- "10 comparaisons<br/>avec les références les plus proches" --> caracteristiques
+    caracteristiques -- "valeurs brutes" --> normalisation
+    normalisation -- "vecteur de 157 valeurs<br/>mises à l'échelle" --> reseau
+    reseau -- "sortie de la sigmoïde" --> score
+    score -- "comparé au seuil" --> seuil
+    seuil -- "oui" --> suspect
+    seuil -- "non" --> valide
+
+    cli[("Essai local<br/>rapports/evaluation.json : seuil<br/>modele/poids.json et normalisation.json")]
+    ext[("Extension<br/>public/modele/essai.json : seuil, normalisation<br/>public/modele/essai.bin : poids")]
+    cli -. "moyennes et échelles" .-> normalisation
+    cli -. "poids" .-> reseau
+    cli -. "seuil recommandé" .-> seuil
+    ext -. "moyennes et échelles" .-> normalisation
+    ext -. "poids" .-> reseau
+    ext -. "seuil" .-> seuil
+```
+
+Dans l'extension, la fenêtre de comparaison affiche ce verdict à côté de celui des règles (`src/noyau/detection.ts`), pour le domaine de l'onglet courant. Seules les règles déclenchent les alertes ; les sites hors périmètre (suffixe privé ou plateforme exclue) ne passent pas par le modèle.
 
 ## Entraîner le modèle
 

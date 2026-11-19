@@ -1,0 +1,12 @@
+[
+  {
+    "id": "adullact",
+    "nom": "Noms de domaine des organismes du secteur public (urls.txt, forge de l'ADULLACT)",
+    "url": "https://gitlab.adullact.net/dinum/noms-de-domaine-organismes-secteur-public",
+    "licence": "Licence Ouverte 2.0",
+    "role": "legitime",
+    "recuperation": "snapshot",
+    "recupereLe": "2026-11-19",
+    "fichier": "donnees/snapshots/adullact-urls.txt"
+  }
+]
