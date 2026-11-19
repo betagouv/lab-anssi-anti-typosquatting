@@ -4,7 +4,7 @@ Ce dossier permet de créer un jeu d'exemples, d'entraîner un modèle TensorFlo
 
 ## Installer le projet
 
-Installer **Node.js 24** et npm. Si le dépôt n'est pas encore présent :
+Installer **Node.js 26** et npm. Si le dépôt n'est pas encore présent :
 
 ```bash
 git clone https://github.com/betagouv/lab-anssi-anti-typosquatting.git
