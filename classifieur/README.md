@@ -230,7 +230,7 @@ Ici, `valide` signifie seulement qu'aucune proximité trompeuse suffisante n'a �
 
 ## Exporter le modèle d'essai pour l'extension
 
-La version embarquée est entraînée avec les paramètres de `classifieur:essai` : 1 000 domaines sources, graine `20260917`, jusqu'à 12 époques. Après un entraînement et son évaluation :
+La version embarquée est entraînée sur toute la liste légitime (`--limite=0`, 27 633 domaines sources, 273 763 exemples), graine `20260917`, 25 époques demandées, lots de 256 : `npm run classifieur:reentrainer -- --limite=0 --epoques=25 --taille-du-lot=256`. L'arrêt anticipé a retenu la 3e époque. Après un entraînement et son évaluation :
 
 ```bash
 npm run classifieur:essai
@@ -250,7 +250,7 @@ Quand les sources ou la liste changent, une seule commande relance toute la cha�
 npm run classifieur:reentrainer
 ```
 
-Par défaut, le candidat est entraîné avec les paramètres du modèle livré (lus dans `public/modele/essai.json` : graine, nombre de domaines sources, quantités et seuils de génération), 12 époques et des lots de 512, dans `classifieur/resultats-reentrainement/`. Toutes les options de `classifieur:essai` s'appliquent. Deux options règlent la décision : `--plancher-f1` (0,95 par défaut) et `--tolerance` (0 par défaut, écart de F1 toléré par rapport au modèle livré).
+Par défaut, le candidat est entraîné avec les paramètres de génération du modèle livré (lus dans `public/modele/essai.json` : graine, nombre de domaines sources, quantités et seuils), 12 époques et des lots de 512, dans `classifieur/resultats-reentrainement/`. Toutes les options de `classifieur:essai` s'appliquent. Deux options règlent la décision : `--plancher-f1` (0,95 par défaut) et `--tolerance` (0 par défaut, écart de F1 toléré par rapport au modèle livré).
 
 ```mermaid
 flowchart TD
