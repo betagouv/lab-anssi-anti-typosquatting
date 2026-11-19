@@ -27,6 +27,10 @@ L'entrée du classifieur est [`src/donnees/domaines-legitimes.txt`](../src/donne
 | Source | Contenu | Récupération |
 | --- | --- | --- |
 | `adullact` | `urls.txt` du dépôt [`dinum/noms-de-domaine-organismes-secteur-public`](https://gitlab.adullact.net/dinum/noms-de-domaine-organismes-secteur-public), uniquement des domaines répondant en HTTP 200 | téléchargement manuel (la forge bloque les scripts), versionné dans `donnees/snapshots/adullact-urls.txt` |
+| `dpnt` | colonne `site_internet` du jeu [présence numérique des territoires](https://www.data.gouv.fr/datasets/donnees-de-la-presence-numerique-des-territoires) de l'ANCT, Licence Ouverte 2.0 | téléchargé à chaque génération, mis en cache dans `donnees-sources/` |
+| `mediametrie` | domaine principal de chacune des 50 marques les plus visitées en France en juillet 2026 ([communiqué Médiamétrie//NetRatings](https://www.mediametrie.fr/system/files/2026-08/C1-O-COM%202026%2008%2025%20CP%20Audience%20Internet%20Global%20Juillet%202026.pdf)), copyright Médiamétrie : seuls les noms des marques sont repris | saisi à la main, versionné dans `donnees/sources/mediametrie-2026-07.csv` (`rang;marque;domaine`) |
+
+Les règles de sélection s'appliquent à toutes les sources : sur les 50 marques, six plateformes de `src/donnees/domaines-exclus.txt` (Google, Facebook, YouTube, Instagram, LinkedIn, X) et `e.leclerc` (nom de moins de 4 caractères) ne sont pas retenus.
 
 Pour ajouter une source : écrire `scripts/sources/<id>.ts`, la déclarer dans `donnees/sources.json` et dans `scripts/genere-les-domaines-legitimes.ts`, puis regénérer la liste et réentraîner le modèle d'essai.
 
@@ -46,17 +50,21 @@ Train, la prédiction locale et l'extension emploient la même recherche de cand
 
 ## Flux de l'entraînement
 
-Des sources publiques jusqu'au modèle embarqué. Les cylindres sont des fichiers, les rectangles des transformations (commande npm entre parenthèses). Sont versionnés : le manifeste des sources, le snapshot Adullact, la liste légitime, la liste des plateformes exclues et le modèle exporté. `donnees-sources/` et `classifieur/resultats/` sont régénérables et ignorés par Git.
+Des sources publiques jusqu'au modèle embarqué. Les cylindres sont des fichiers, les rectangles des transformations (commande npm entre parenthèses). Sont versionnés : le manifeste des sources, le snapshot Adullact, le fichier des marques Médiamétrie, la liste légitime, la liste des plateformes exclues et le modèle exporté. `donnees-sources/` et `classifieur/resultats/` sont régénérables et ignorés par Git.
 
 ```mermaid
 flowchart TD
     adullact[("donnees/snapshots/adullact-urls.txt<br/>urls.txt de l'ADULLACT, domaines en HTTP 200<br/>(téléchargé à la main, versionné)")]
+    dpnt[("dpnt-quotidien.csv.gz<br/>présence numérique des territoires (ANCT)<br/>(téléchargé dans donnees-sources/)")]
+    mediametrie[("donnees/sources/mediametrie-2026-07.csv<br/>domaine des 50 marques les plus visitées<br/>(saisi à la main, versionné)")]
     manifeste[("donnees/sources.json<br/>URL, licence, rôle de chaque source")]
     exclus[("src/donnees/domaines-exclus.txt<br/>plateformes à écarter")]
     filtre["Filtrage par source<br/>(genere:domaines)<br/>nom normalisable, hors suffixe privé,<br/>hors plateformes, étiquette de 4 caractères minimum"]
     liste[("src/donnees/domaines-legitimes.txt<br/>liste légitime versionnée")]
 
     adullact -- "lit les URL, extrait le nom d'hôte" --> filtre
+    dpnt -- "lit la colonne site_internet" --> filtre
+    mediametrie -- "lit la colonne domaine" --> filtre
     exclus -- "écarte les plateformes" --> filtre
     manifeste -. "déclare les sources<br/>(vérifié par un test)" .-> filtre
     filtre -- "écrit les domaines retenus, triés" --> liste

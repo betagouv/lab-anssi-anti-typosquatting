@@ -3,7 +3,7 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 export const ROLES_CONNUS = ["legitime"] as const;
-export const RECUPERATIONS_CONNUES = ["telechargement", "snapshot"] as const;
+export const RECUPERATIONS_CONNUES = ["telechargement", "snapshot", "saisie"] as const;
 
 export interface DescriptionDeSource {
   readonly id: string;
@@ -47,12 +47,12 @@ const verifieLaSource = (source: unknown, position: number): DescriptionDeSource
   if (!String(champs["url"]).startsWith("https://")) {
     throw new Error(`${lieu} : l'URL doit commencer par https://.`);
   }
-  if (champs["recuperation"] === "snapshot") {
+  if (champs["recuperation"] === "snapshot" || champs["recuperation"] === "saisie") {
     if (!/^\d{4}-\d{2}-\d{2}$/.test(String(champs["recupereLe"]))) {
-      throw new Error(`${lieu} : « recupereLe » (AAAA-MM-JJ) est obligatoire pour un snapshot.`);
+      throw new Error(`${lieu} : « recupereLe » (AAAA-MM-JJ) est obligatoire pour un snapshot ou une saisie.`);
     }
     if (!estUneChaineNonVide(champs["fichier"])) {
-      throw new Error(`${lieu} : « fichier » est obligatoire pour un snapshot.`);
+      throw new Error(`${lieu} : « fichier » est obligatoire pour un snapshot ou une saisie.`);
     }
   }
   return source as DescriptionDeSource;
