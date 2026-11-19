@@ -77,7 +77,7 @@ Un clic sur l'icône ouvre la popup de l'onglet courant : une alerte (succès,
 avertissement ou erreur) résume le verdict des règles, et un accordéon « Détail de
 l'analyse » donne toutes les informations, y compris le résultat d'un modèle d'essai.
 Après une navigation interrompue, un bouton « Naviguer quand même » est proposé sous
-l'alerte. Ces composants imitent le DSFR en CSS, sans embarquer sa bibliothèque. Le modèle a été entraîné sur 1 000 domaines sources et des
+l'alerte. Ces composants imitent le DSFR en CSS, sans embarquer sa bibliothèque. Le modèle a été entraîné sur les 27 633 domaines de la liste et des
 exemples synthétiques ; son score est exploratoire. Les règles seules continuent de
 déclencher les blocages et avertissements. Le calcul est local et le modèle est chargé
 uniquement à l'ouverture de la fenêtre.
