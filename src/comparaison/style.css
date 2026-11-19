@@ -159,3 +159,32 @@ h2 {
   font-size: 12px;
   line-height: 18px;
 }
+
+.alerte {
+  margin: 0 0 16px;
+  padding: 12px 16px;
+  border-left: 4px solid #b34000;
+  background: #fff4f3;
+  font-size: 14px;
+  line-height: 22px;
+}
+
+.alerte p {
+  margin: 0 0 8px;
+}
+
+.bouton {
+  padding: 6px 16px;
+  border: 1px solid var(--couleur-action);
+  background: transparent;
+  color: var(--couleur-action);
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 24px;
+  cursor: pointer;
+}
+
+.bouton:hover {
+  background: var(--couleur-fond-secondaire);
+}

@@ -1,7 +1,19 @@
 export interface DemandeDAutorisation {
   readonly type: "autorise-le-domaine";
   readonly domaine: string;
+  readonly idDeLOnglet?: number;
 }
+
+export interface DemandeDAlerteEnCours {
+  readonly type: "donne-l-alerte-en-cours";
+  readonly idDeLOnglet: number;
+}
+
+export const estUneDemandeDAlerteEnCours = (message: unknown): message is DemandeDAlerteEnCours => {
+  if (typeof message !== "object" || message === null) return false;
+  const candidat = message as Partial<DemandeDAlerteEnCours>;
+  return candidat.type === "donne-l-alerte-en-cours" && Number.isInteger(candidat.idDeLOnglet);
+};
 
 export interface DemandeDeComparaison {
   readonly type: "compare-les-methodes";
@@ -22,6 +34,7 @@ export const estUneDemandeDAutorisation = (
   return (
     candidat.type === "autorise-le-domaine" &&
     typeof candidat.domaine === "string" &&
-    candidat.domaine.length > 0
+    candidat.domaine.length > 0 &&
+    (candidat.idDeLOnglet === undefined || Number.isInteger(candidat.idDeLOnglet))
   );
 };
