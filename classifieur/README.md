@@ -50,7 +50,7 @@ Train, la prédiction locale et l'extension emploient la même recherche de cand
 
 ## Flux de l'entraînement
 
-Des sources publiques jusqu'au modèle embarqué. Les cylindres sont des fichiers, les rectangles des transformations (commande npm entre parenthèses). Sont versionnés : le manifeste des sources, le snapshot Adullact, le fichier des marques Médiamétrie, la liste légitime et sa provenance, la liste des plateformes exclues et le modèle exporté. `donnees-sources/` et `classifieur/resultats/` sont régénérables et ignorés par Git.
+Des sources publiques jusqu'au modèle embarqué. Les cylindres sont des fichiers, les rectangles des transformations (commande npm entre parenthèses). Sont versionnés : le manifeste des sources, le snapshot Adullact, le fichier des marques Médiamétrie, la liste légitime et sa provenance, la liste des plateformes exclues, le registre et le modèle exporté. `donnees-sources/` et `classifieur/resultats/` sont régénérables et ignorés par Git.
 
 ```mermaid
 flowchart TD
@@ -238,9 +238,54 @@ npm run classifieur:exporter-modele
 npm run classifieur:verifier-export
 ```
 
-L'export écrit `public/modele/essai.bin` (poids float32) et `public/modele/essai.json` (ordre des colonnes, normalisation, seuil, empreintes et paramètres). Ces deux fichiers sont versionnés et embarqués dans les paquets Chrome et Firefox. La commande d'export refuse une liste source, des poids, une architecture ou une normalisation incompatibles ; `classifieur:verifier-export` vérifie de nouveau l'export sans entraîner le modèle. Si la liste légitime change, réentraîner et exporter avant de livrer l'extension.
+L'export écrit `public/modele/essai.bin` (poids float32) et `public/modele/essai.json` (ordre des colonnes, normalisation, seuil, empreintes et paramètres). Ces deux fichiers sont versionnés et embarqués dans les paquets Chrome et Firefox. La commande d'export refuse une liste source, des poids, une architecture ou une normalisation incompatibles ; `classifieur:verifier-export` vérifie de nouveau l'export sans entraîner le modèle. Si la liste légitime change, réentraîner et exporter avant de livrer l'extension : `classifieur:reentrainer` enchaîne les deux et ne livre le modèle que s'il tient la comparaison.
 
 L'inférence de l'extension utilise un calcul TypeScript limité aux trois couches du modèle. Le test de parité compare ses scores à TensorFlow.js. La fenêtre ouverte depuis l'icône affiche le résultat expérimental et celui des règles pour le domaine courant ; seul ce dernier pilote les alertes.
+
+## Réentraîner et livrer un nouveau modèle
+
+Quand les sources ou la liste changent, une seule commande relance toute la chaîne, compare le résultat au modèle livré et ne le remplace que s'il est au moins aussi bon :
+
+```bash
+npm run classifieur:reentrainer
+```
+
+Par défaut, le candidat est entraîné avec les paramètres du modèle livré (lus dans `public/modele/essai.json` : graine, nombre de domaines sources, quantités et seuils de génération), 12 époques et des lots de 512, dans `classifieur/resultats-reentrainement/`. Toutes les options de `classifieur:essai` s'appliquent. Deux options règlent la décision : `--plancher-f1` (0,95 par défaut) et `--tolerance` (0 par défaut, écart de F1 toléré par rapport au modèle livré).
+
+```mermaid
+flowchart TD
+    sources[("donnees/sources.json<br/>src/donnees/domaines-legitimes.txt<br/>donnees/provenance-des-domaines.csv")]
+    livre[("public/modele/essai.bin et essai.json<br/>modèle livré dans l'extension")]
+    chaine["Chaîne complète (classifieur:reentrainer)<br/>génération, répartition, normalisation,<br/>entraînement, évaluation"]
+    candidat[("resultats-reentrainement/<br/>poids, normalisation, test.csv, evaluation.json")]
+    evaluationLivre["Évaluation du modèle livré<br/>sur le test.csv du candidat,<br/>même recherche du seuil que le candidat"]
+    decision{"F1 du candidat au moins égal<br/>au plancher et au F1 du modèle livré ?"}
+    export["Export (classifieur:exporter-modele)<br/>remplace essai.bin et essai.json"]
+    conserve["Modèle livré conservé"]
+    registre[("classifieur/registre/entrainements.jsonl<br/>une ligne ajoutée à chaque exécution")]
+
+    sources -- "liste et provenance relues" --> chaine
+    livre -- "fournit les paramètres de génération<br/>par défaut" --> chaine
+    chaine -- "écrit les poids et le jeu de test" --> candidat
+    candidat -- "F1 du candidat" --> decision
+    candidat -- "jeu de test" --> evaluationLivre
+    livre -- "poids et normalisation du modèle livré" --> evaluationLivre
+    evaluationLivre -- "F1 du modèle livré" --> decision
+    decision -- "oui : livre" --> export
+    decision -- "non : conserve" --> conserve
+    export -- "décision : livré" --> registre
+    conserve -- "décision : conservé" --> registre
+    candidat -. "paramètres, performances,<br/>empreintes du modèle et de la liste" .-> registre
+```
+
+Chaque exécution ajoute une ligne JSON au registre (`classifieur/registre/entrainements.jsonl`, versionné, jamais réécrit) avec : la date ; l'empreinte de la liste et celle de la provenance, le nombre de domaines et leur répartition par source ; les paramètres de génération ; les lignes d'entraînement, les époques et la meilleure perte de validation ; l'empreinte du modèle ; le seuil, la précision, le rappel et le F1 sur le jeu de test ; la décision et sa raison. Une exécution dont la décision est « conservé » est consignée aussi. Le registre se commite avec le modèle ou la liste qu'il documente.
+
+Limites à connaître :
+
+- Les exemples d'apprentissage et de test sont synthétiques : le F1 ne mesure pas le taux de faux avertissements sur de vrais domaines légitimes inconnus.
+- Le seuil de chaque modèle est choisi sur le jeu de test, pour le candidat comme pour le modèle livré : la comparaison est homogène, mais optimiste.
+- Le modèle livré est évalué sur le jeu de test du candidat. Il a pu être entraîné sur certains de ces domaines, ce qui le favorise légèrement.
+- Un candidat identique au modèle livré (mêmes données, mêmes paramètres) est « livré » sans changer un octet de `essai.bin`.
 
 ## Vérifier le code
 
