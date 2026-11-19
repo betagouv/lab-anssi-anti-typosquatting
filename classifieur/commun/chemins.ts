@@ -9,6 +9,10 @@ export const FICHIER_DES_DOMAINES = join(
   "domaines-legitimes.txt",
 );
 
+export const REPERTOIRE_DU_MODELE_LIVRE = join(RACINE_DU_DEPOT, "public", "modele");
+export const FICHIER_DES_METADONNEES_DU_MODELE_LIVRE = join(REPERTOIRE_DU_MODELE_LIVRE, "essai.json");
+export const FICHIER_DES_POIDS_DU_MODELE_LIVRE = join(REPERTOIRE_DU_MODELE_LIVRE, "essai.bin");
+
 export const cheminsDesResultats = (repertoire: string) => {
   const racine = resolve(repertoire);
   return {
