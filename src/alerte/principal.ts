@@ -1,19 +1,9 @@
 import browser from "webextension-polyfill";
 
+import { MOTIFS } from "../commun/motifs.ts";
 import "./style.css";
 
 const ADRESSE_DE_CONTACT = "contact@anti-typosquatting.beta.gouv.fr";
-
-const MOTIFS: Readonly<Record<string, string>> = {
-  "sous-domaine-trompeur":
-    "Un domaine public est déguisé en sous-domaine d’un autre site.",
-  homoglyphe: "Des caractères imitent visuellement ceux du site officiel.",
-  "permutation-de-tld": "L’extension du domaine a été remplacée.",
-  combosquat: "Le nom du site officiel est noyé dans un nom plus long.",
-  separateur: "Les tirets du nom officiel ont été déplacés.",
-  "distance-d-edition":
-    "Le nom diffère de quelques caractères de celui du site officiel.",
-};
 
 const parametres = new URLSearchParams(window.location.search);
 const domaineVisite = parametres.get("domaineVisite") ?? "";

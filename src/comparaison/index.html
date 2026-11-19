@@ -3,34 +3,27 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Comparer les détections</title>
+  <title>Détection de typosquatting</title>
   <link rel="stylesheet" href="./style.css">
 </head>
 <body>
   <main>
-    <p class="sur-titre">Détection de typosquatting</p>
-    <h1>Comparaison des méthodes</h1>
-    <p id="domaine" class="domaine">Chargement de l’onglet…</p>
-    <p id="etat" class="etat" role="status"></p>
-    <div id="alerte" class="alerte" hidden>
-      <p><strong>Navigation interrompue.</strong> Ce domaine semble imiter un site public, l’onglet a été ramené à la page précédente.</p>
-      <button id="visiter-quand-meme" type="button" class="bouton">Visiter quand même</button>
+    <div id="alerte" class="alerte alerte--info" role="status">
+      <h1 id="titre-de-l-alerte" class="alerte__titre">Analyse en cours…</h1>
+      <p id="description-de-l-alerte" class="alerte__description"></p>
     </div>
-    <div class="resultats">
-      <section aria-labelledby="titre-regles">
-        <p class="methode">Méthode actuelle</p>
-        <h2 id="titre-regles">Règles</h2>
-        <p id="decision-regles" class="decision">Analyse en cours…</p>
-        <p id="details-regles" class="details"></p>
-      </section>
-      <section aria-labelledby="titre-modele">
-        <p class="methode">Modèle d’essai</p>
-        <h2 id="titre-modele">Classifieur</h2>
-        <p id="decision-modele" class="decision">Analyse en cours…</p>
-        <p id="details-modele" class="details"></p>
-      </section>
-    </div>
-    <p class="note">Le modèle est entraîné sur un sous-ensemble synthétique. Son score ne mesure pas un risque de fraude opérationnel. Seules les règles actuelles déclenchent les alertes de navigation.</p>
+
+    <button id="naviguer-quand-meme" type="button" class="bouton bouton--secondaire" hidden>
+      Naviguer quand même
+    </button>
+
+    <details id="details" class="accordeon" hidden>
+      <summary class="accordeon__bouton">Détail de l’analyse</summary>
+      <div class="accordeon__contenu">
+        <dl id="liste-des-details" class="details"></dl>
+        <p class="note">Le modèle d’essai est expérimental : seules les règles déclenchent les alertes.</p>
+      </div>
+    </details>
   </main>
   <script type="module" src="./principal.ts"></script>
 </body>
