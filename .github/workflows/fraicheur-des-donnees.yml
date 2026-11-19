@@ -23,7 +23,7 @@ jobs:
       - run: npm run genere:domaines
       - name: Signaler un écart
         run: |
-          if git diff --quiet -- src/donnees/domaines-legitimes.txt; then
+          if git diff --quiet -- src/donnees/domaines-legitimes.txt donnees/provenance-des-domaines.csv; then
             echo "La liste versionnée est à jour."
             exit 0
           fi
