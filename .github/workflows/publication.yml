@@ -1,0 +1,173 @@
+name: Publication sur les stores
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: read
+
+jobs:
+  paquets:
+    name: Paquets de la version
+    if: ${{ !github.event.release.prerelease }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    env:
+      TAG: ${{ github.event.release.tag_name }}
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - name: Le tag correspond à la version du package.json
+        run: |
+          version=$(node -p "require('./package.json').version")
+          if [ "$TAG" != "v$version" ]; then
+            echo "::error::Le tag $TAG ne correspond pas à la version v$version du package.json."
+            exit 1
+          fi
+      - run: npm ci
+      - run: npm run build:all
+      - name: Validation du paquet Firefox
+        run: npx web-ext lint --source-dir=dist/firefox --self-hosted
+      - name: Archives Chrome, Firefox et sources
+        run: |
+          (cd dist/chrome && zip -qr "../../anti-typosquatting-chrome-$TAG.zip" .)
+          (cd dist/firefox && zip -qr "../../anti-typosquatting-firefox-$TAG.zip" .)
+          git archive --format=zip --output="anti-typosquatting-sources-$TAG.zip" HEAD
+      - name: Ajout des archives à la release
+        run: gh release upload "$TAG" anti-typosquatting-*-"$TAG".zip --clobber
+
+  chrome:
+    name: Chrome Web Store
+    needs: paquets
+    runs-on: ubuntu-latest
+    environment: chrome-web-store
+    env:
+      TAG: ${{ github.event.release.tag_name }}
+      GH_TOKEN: ${{ github.token }}
+      API: https://chromewebstore.googleapis.com
+      ELEMENT: publishers/${{ vars.CHROME_PUBLISHER_ID }}/items/${{ vars.CHROME_EXTENSION_ID }}
+    steps:
+      - name: Récupération du paquet
+        run: gh release download "$TAG" --repo "$GITHUB_REPOSITORY" --pattern "anti-typosquatting-chrome-$TAG.zip"
+      - name: Jeton d'accès
+        env:
+          CLIENT_ID: ${{ secrets.CHROME_CLIENT_ID }}
+          CLIENT_SECRET: ${{ secrets.CHROME_CLIENT_SECRET }}
+          REFRESH_TOKEN: ${{ secrets.CHROME_REFRESH_TOKEN }}
+        run: |
+          jeton=$(curl --silent --fail-with-body https://oauth2.googleapis.com/token \
+            --data-urlencode "client_id=$CLIENT_ID" \
+            --data-urlencode "client_secret=$CLIENT_SECRET" \
+            --data-urlencode "refresh_token=$REFRESH_TOKEN" \
+            --data-urlencode "grant_type=refresh_token" | jq -r .access_token)
+          echo "::add-mask::$jeton"
+          echo "JETON=$jeton" >> "$GITHUB_ENV"
+      - name: Envoi du paquet
+        run: |
+          reponse=$(curl --silent --fail-with-body -X POST \
+            -H "Authorization: Bearer $JETON" \
+            -T "anti-typosquatting-chrome-$TAG.zip" \
+            "$API/upload/v2/$ELEMENT:upload")
+          echo "$reponse"
+          etat=$(jq -r .uploadState <<< "$reponse")
+          for tentative in $(seq 1 30); do
+            [ "$etat" != "IN_PROGRESS" ] && break
+            sleep 10
+            etat=$(curl --silent --fail-with-body -H "Authorization: Bearer $JETON" \
+              "$API/v2/$ELEMENT:fetchStatus" | jq -r .lastAsyncUploadState)
+          done
+          if [ "$etat" != "SUCCEEDED" ]; then
+            echo "::error::Envoi refusé par le Chrome Web Store : $etat"
+            exit 1
+          fi
+      - name: Soumission à la revue
+        run: |
+          curl --silent --fail-with-body -X POST \
+            -H "Authorization: Bearer $JETON" \
+            "$API/v2/$ELEMENT:publish"
+
+  firefox:
+    name: Firefox Add-ons
+    needs: paquets
+    runs-on: ubuntu-latest
+    environment: firefox-add-ons
+    env:
+      TAG: ${{ github.event.release.tag_name }}
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - name: Récupération du paquet et des sources
+        run: |
+          gh release download "$TAG" \
+            --pattern "anti-typosquatting-firefox-$TAG.zip" \
+            --pattern "anti-typosquatting-sources-$TAG.zip" \
+            --dir publication
+          unzip -q "publication/anti-typosquatting-firefox-$TAG.zip" -d publication/firefox
+      - name: Soumission à la revue
+        env:
+          WEB_EXT_API_KEY: ${{ secrets.AMO_JWT_ISSUER }}
+          WEB_EXT_API_SECRET: ${{ secrets.AMO_JWT_SECRET }}
+        run: |
+          npx web-ext sign \
+            --channel=listed \
+            --source-dir=publication/firefox \
+            --upload-source-code="publication/anti-typosquatting-sources-$TAG.zip" \
+            --approval-timeout=0
+
+  edge:
+    name: Microsoft Edge Add-ons
+    needs: paquets
+    runs-on: ubuntu-latest
+    environment: edge-add-ons
+    env:
+      TAG: ${{ github.event.release.tag_name }}
+      GH_TOKEN: ${{ github.token }}
+      PRODUIT: https://api.addons.microsoftedge.microsoft.com/v1/products/${{ vars.EDGE_PRODUCT_ID }}
+      CLIENT_ID: ${{ secrets.EDGE_CLIENT_ID }}
+      API_KEY: ${{ secrets.EDGE_API_KEY }}
+    steps:
+      - name: Récupération du paquet
+        run: gh release download "$TAG" --repo "$GITHUB_REPOSITORY" --pattern "anti-typosquatting-chrome-$TAG.zip"
+      - name: Envoi du paquet puis soumission à la revue
+        run: |
+          attends_la_fin_de() {
+            local url_operation=$1 etat
+            for tentative in $(seq 1 30); do
+              reponse=$(curl --silent --fail-with-body \
+                -H "Authorization: ApiKey $API_KEY" -H "X-ClientID: $CLIENT_ID" "$url_operation")
+              etat=$(jq -r .status <<< "$reponse")
+              [ "$etat" != "InProgress" ] && break
+              sleep 10
+            done
+            echo "$reponse"
+            [ "$etat" = "Succeeded" ]
+          }
+
+          identifiant_d_operation() {
+            grep -i '^location:' | tr -d '\r' | awk '{print $2}' | xargs basename
+          }
+
+          operation=$(curl --silent --fail-with-body --dump-header - --output /dev/null -X POST \
+            -H "Authorization: ApiKey $API_KEY" -H "X-ClientID: $CLIENT_ID" \
+            -H "Content-Type: application/zip" \
+            -T "anti-typosquatting-chrome-$TAG.zip" \
+            "$PRODUIT/submissions/draft/package" | identifiant_d_operation)
+          attends_la_fin_de "$PRODUIT/submissions/draft/package/operations/$operation"
+
+          operation=$(curl --silent --fail-with-body --dump-header - --output /dev/null -X POST \
+            -H "Authorization: ApiKey $API_KEY" -H "X-ClientID: $CLIENT_ID" \
+            -H "Content-Type: application/json" \
+            -d "{\"notes\": \"Version $TAG\"}" \
+            "$PRODUIT/submissions" | identifiant_d_operation)
+          attends_la_fin_de "$PRODUIT/submissions/operations/$operation"
