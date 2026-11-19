@@ -8,12 +8,12 @@ import { litLaProvenance } from "../creation-du-dataset/generation.ts";
 import { chargeLeModele } from "../entrainement/modele.ts";
 import { litLaNormalisation, parcourtLesLots } from "../entrainement/normalisation.ts";
 
-interface Prediction {
+export interface Prediction {
   readonly score: number;
   readonly cible: number;
 }
 
-interface Mesures {
+export interface Mesures {
   readonly seuil: number;
   readonly vraisPositifs: number;
   readonly fauxPositifs: number;
@@ -41,6 +41,13 @@ export const mesuresAuSeuil = (predictions: readonly Prediction[], seuil: number
   const scoreF1 = (2 * precision * rappel) / Math.max(precision + rappel, 1e-12);
   return { seuil, vraisPositifs, fauxPositifs, fauxNegatifs, vraisNegatifs, precision, rappel, scoreF1 };
 };
+
+export const calculeLesMesuresParSeuil = (predictions: readonly Prediction[]): Mesures[] =>
+  Array.from({ length: 91 }, (_, position) => mesuresAuSeuil(predictions, (position + 5) / 100));
+
+export const choisitLesMeilleuresMesures = (mesuresParSeuil: readonly Mesures[]): Mesures =>
+  mesuresParSeuil.reduce((meilleures, mesures) =>
+    mesures.scoreF1 > meilleures.scoreF1 ? mesures : meilleures);
 
 export const evalueLeModele = async (repertoire: string): Promise<void> => {
   const chemins = cheminsDesResultats(repertoire);
@@ -70,10 +77,8 @@ export const evalueLeModele = async (repertoire: string): Promise<void> => {
     modele.dispose();
   }
   if (predictions.length === 0) throw new Error("Le jeu de test est vide.");
-  const mesuresParSeuil = Array.from({ length: 91 }, (_, position) =>
-    mesuresAuSeuil(predictions, (position + 5) / 100));
-  const meilleuresMesures = mesuresParSeuil.reduce((meilleures, mesures) =>
-    mesures.scoreF1 > meilleures.scoreF1 ? mesures : meilleures);
+  const mesuresParSeuil = calculeLesMesuresParSeuil(predictions);
+  const meilleuresMesures = choisitLesMeilleuresMesures(mesuresParSeuil);
   await ecritJson(chemins.evaluation, {
     empreinteSource: provenance.empreinteSource,
     empreinteModele,

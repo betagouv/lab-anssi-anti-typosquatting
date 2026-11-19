@@ -1,9 +1,19 @@
+import { executeLaChaine } from "../chaine/chaine.ts";
 import { cheminsDesResultats } from "../commun/chemins.ts";
 import { entraineLeModele } from "../entrainement/entrainement.ts";
 import { evalueLeModele } from "../evaluation/evaluation.ts";
 import { genereLesDonnees, type ParametresDeGeneration } from "../creation-du-dataset/generation.ts";
 import { calculeLaNormalisation } from "../entrainement/normalisation.ts";
-import { litEntier, litNombre, litRepertoire } from "./options.ts";
+import {
+  EPOQUES_DU_REENTRAINEMENT,
+  litLesParametresDuModeleLivre,
+  PLANCHER_DE_F1_PAR_DEFAUT,
+  reentraineEtLivre,
+  REPERTOIRE_DU_REENTRAINEMENT,
+  TAILLE_DU_LOT_DU_REENTRAINEMENT,
+  TOLERANCE_PAR_DEFAUT,
+} from "../livraison/reentrainement.ts";
+import { litEntier, litNombre, litOption, litRepertoire } from "./options.ts";
 import { repartitLesDonnees } from "../creation-du-dataset/repartition.ts";
 import { preditLeDomaine } from "../inference/prediction.ts";
 
@@ -52,17 +62,34 @@ switch (commande) {
     break;
   }
   case "chaine":
-  case "essai": {
-    const parametres = parametresDeGeneration(commande === "essai");
-    await genereLesDonnees(parametres);
-    await repartitLesDonnees(parametres.repertoire);
-    await calculeLaNormalisation(parametres.repertoire);
-    await entraineLeModele({
-      repertoire: parametres.repertoire,
+  case "essai":
+    await executeLaChaine({
+      generation: parametresDeGeneration(commande === "essai"),
       epoques: litEntier("epoques", commande === "essai" ? 12 : 25),
       tailleDuLot: litEntier("taille-du-lot", commande === "essai" ? 512 : 256),
     });
-    await evalueLeModele(parametres.repertoire);
+    break;
+  case "reentrainer": {
+    const parametresDuModeleLivre = await litLesParametresDuModeleLivre();
+    await reentraineEtLivre({
+      generation: {
+        repertoire: litOption("repertoire", REPERTOIRE_DU_REENTRAINEMENT),
+        graine: String(litEntier("graine", Number(parametresDuModeleLivre.graine))),
+        limite: litEntier("limite", parametresDuModeleLivre.limite),
+        imitationsParDomaine: litEntier("imitations-par-domaine", parametresDuModeleLivre.imitationsParDomaine),
+        intermediairesParDomaine: litEntier("intermediaires-par-domaine", parametresDuModeleLivre.intermediairesParDomaine),
+        distantsParDomaine: litEntier("distants-par-domaine", parametresDuModeleLivre.distantsParDomaine),
+        scoreMinimumImitation: litNombre("score-minimum-imitation", parametresDuModeleLivre.scoreMinimumImitation),
+        scoreMinimumIntermediaire: litNombre("score-minimum-intermediaire", parametresDuModeleLivre.scoreMinimumIntermediaire),
+        scoreMaximumIntermediaire: litNombre("score-maximum-intermediaire", parametresDuModeleLivre.scoreMaximumIntermediaire),
+      },
+      epoques: litEntier("epoques", EPOQUES_DU_REENTRAINEMENT),
+      tailleDuLot: litEntier("taille-du-lot", TAILLE_DU_LOT_DU_REENTRAINEMENT),
+      criteres: {
+        plancherDeF1: litNombre("plancher-f1", PLANCHER_DE_F1_PAR_DEFAUT),
+        tolerance: litNombre("tolerance", TOLERANCE_PAR_DEFAUT),
+      },
+    });
     break;
   }
   default:
