@@ -1,6 +1,7 @@
 17cyber.gouv.fr
 1jeune1solution.gouv.fr
 2030.fr
+20minutes.fr
 2c2r.fr
 2ccam.fr
 2edb-leclerc.fr
@@ -121,6 +122,7 @@ acs-corbreuse.asso.fr
 acsor.fr
 acticity.com
 actionetcompetence-alsace.com
+actu.fr
 acver.fr
 adac.asso.fr
 adag01.fr
@@ -346,6 +348,7 @@ ainay-le-chateau.fr
 aincourt.fr
 ainhoa.fr
 airaines.fr
+airbnb.fr
 aire-sur-adour.fr
 aire-sur-adour.org
 aironnotredame.com
@@ -497,6 +500,7 @@ amange.fr
 amanlis.fr
 amanvillers.fr
 amaye-sur-orne.fr
+amazon.fr
 ambafrance-gt.org
 ambafrance.org
 ambaresetlagrave.fr
@@ -717,6 +721,7 @@ aphp.fr
 apinac.fr
 appeville.com
 appietto.corsica
+apple.com
 appli-intramuros.fr
 apprieu.fr
 apremont-ain.fr
@@ -2062,6 +2067,7 @@ beziers-mediterranee.fr
 bezouce.fr
 bezu-saint-eloi.com
 bezusaintgermain.fr
+bfmtv.com
 biache-saint-vaast.com
 bianslesusiers.fr
 biarritz.fr
@@ -2487,6 +2493,7 @@ bonville-gellainville.fr
 bonvillers.fr
 bonzac.fr
 boo-silhen.fr
+booking.com
 bootzheim.fr
 bopsi.net
 boqueho.bzh
@@ -3396,6 +3403,7 @@ carpentras.fr
 carpiquet.fr
 carquefou.fr
 carqueiranne.fr
+carrefour.fr
 carrepuis.fr
 carrieres-sous-poissy.fr
 carrieres-sur-seine.fr
@@ -4179,6 +4187,7 @@ cdgplus.fr
 cdgreunion.fr
 cdgvar.fr
 cdhj17.fr
+cdiscount.com
 cdma.greta.fr
 cdos-ardennes.fr
 cdos-isere.fr
@@ -6435,6 +6444,7 @@ crecy-couve.fr
 crecylachapelle.eu
 crecysurserre.fr
 credin.bzh
+credit-agricole.fr
 credit-municipal-boulognesmer.fr
 credit-municipal-lyon.fr
 credit-municipal-marseille.fr
@@ -6717,6 +6727,7 @@ daglan.fr
 dagny77.fr
 dahlenheim.fr
 daignac.fr
+dailymotion.com
 daix.fr
 dalhunden.fr
 daluis.fr
@@ -6944,6 +6955,7 @@ dlva.fr
 doazit.fr
 docapost.fr
 docelles.fr
+doctolib.fr
 doctorat.gouv.fr
 documentation-administrative.gouv.fr
 documentationadministrative.gouv.fr
@@ -8219,6 +8231,7 @@ francearchives.gouv.fr
 francebenevolat.org
 francecompetences.fr
 franceconnect.gouv.fr
+franceinfo.fr
 francemobilites.fr
 francenum.gouv.fr
 franceolympique.com
@@ -10744,6 +10757,8 @@ laplume.fr
 lapommeraiejeanvanier.fr
 laporteduder.fr
 lapossession.re
+laposte.fr
+laposte.net
 lapostolle89.fr
 lapoteriecapdantifer.fr
 lapoteriemathieu.fr
@@ -11126,6 +11141,7 @@ lebiot.fr
 lebizot.fr
 lebois73.com
 leboisplage.com
+leboncoin.fr
 lebonhomme.fr
 lebono.fr
 leborn.fr
@@ -11252,6 +11268,7 @@ leffrinckoucke.fr
 lefidelaire.fr
 lefied.fr
 lefieu.fr
+lefigaro.fr
 lefleix.fr
 lefoeil.fr
 lefolgoet.fr
@@ -11351,6 +11368,7 @@ lemesniltheribus.fr
 lemeux.fr
 lemonastere.fr
 lemonastiersurgazeille.fr
+lemonde.fr
 lemontat.fr
 lemontsaintadrien.fr
 lemottier.fr
@@ -11390,6 +11408,7 @@ lepallet.fr
 lepangessurvologne.fr
 leparacletamiens.com
 leparcimperial.fr
+leparisien.fr
 lepasquier.fr
 lepaud.fr
 lepechereau.fr
@@ -11440,6 +11459,7 @@ lequesnelaubry.fr
 lequesnelensanterre.fr
 lequesnoy.fr
 lequesnoyvilleforte.fr
+lequipe.fr
 leran.fr
 lercoul-09.fr
 lere.fr
@@ -11809,6 +11829,7 @@ liasdarmagnac.fr
 libercourt.fr
 libourne.fr
 licques.fr
+lidl.fr
 liebenswiller.com
 lieoux.fr
 liep.fr
@@ -11920,6 +11941,7 @@ lit-et-mixe.com
 littenheim.fr
 litz.fr
 livarot-paysdauge.fr
+live.com
 liverdun.com
 liverdun.fr
 livernon.fr
@@ -16759,6 +16781,7 @@ messei.fr
 messein.fr
 messeix.fr
 messeme.fr
+messenger.com
 messery.fr
 messey-sur-grosne.fr
 messiasursorne.fr
@@ -16842,6 +16865,7 @@ miannay-lambercourt.fr
 michelbach-le-haut.net
 michelbachlebas.fr
 michelbachlehaut.fr
+microsoft.com
 midicorrezien.com
 miery.fr
 mietesheim.fr
@@ -18052,6 +18076,7 @@ nesmy.fr
 nesmy.info
 nespouls.fr
 neste-barousse.fr
+netflix.com
 neubois.fr
 neuf-brisach.fr
 neuf-eglise.fr
@@ -18500,6 +18525,7 @@ opac-x.com
 opac-x.fr
 opac3d.fr
 openacademie.fr
+openai.com
 openedition.org
 openfisca.org
 opentermsarchive.org
@@ -18514,6 +18540,7 @@ oradour.fr
 orainville.fr
 oraison.com
 oraison.fr
+orange.fr
 orbec.fr
 orbeil.fr
 orbey.fr
@@ -18639,6 +18666,7 @@ oudezeele.fr
 oudon.fr
 ouesco.fr
 ouessant.bzh
+ouest-france.fr
 ouestaveyron.fr
 ouestguyane.fr
 ouestlimousin.com
@@ -18664,6 +18692,7 @@ ousse.fr
 oussoyengatinais.fr
 oust-broceliande.bzh
 outines.fr
+outlook.com
 outre-mer.gouv.fr
 outrebois.fr
 outsiderland.com
@@ -18694,6 +18723,7 @@ paca.gouv.fr
 padirac.fr
 padlet.com
 pageas.fr
+pagesjaunes.fr
 pagespro-orange.fr
 pagnylablanchecote.net
 pagnylaville.com
@@ -18842,6 +18872,7 @@ pavillonblanc-colomiers.fr
 pavilly.fr
 payfip.gouv.fr
 payns.fr
+paypal.com
 payrasurlhers.fr
 payrignac.fr
 pays-ancenis.com
@@ -22751,6 +22782,7 @@ samouillan.fr
 sampans.fr
 sampigny-les-maranges.fr
 sampzon.fr
+samsung.com
 san-martino-di-lota.fr
 sanarysurmer.com
 sance.fr
@@ -23449,6 +23481,7 @@ smle.fr
 smlp.fr
 smpoghju.fr
 sna27.fr
+snapchat.com
 snds.gouv.fr
 sochaux.fr
 social-sante.gouv.fr
@@ -23632,6 +23665,7 @@ spm-ct975.fr
 sportgrandest.eu
 sports.gouv.fr
 sportsdenature.gouv.fr
+spotify.com
 spoy.org
 sqyway1625.fr
 srdcbs.fr
@@ -24158,6 +24192,7 @@ tellancourt.fr
 temis.org
 templemars.fr
 templeuxlafosse.fr
+temu.com
 tenay.fr
 tencin.fr
 tende.fr
@@ -24352,6 +24387,7 @@ tignes.net
 tignieu-jameyzieu.fr
 tigny-noyelle.fr
 tigy.fr
+tiktok.com
 til-chatel.fr
 tilh.fr
 tillac.fr
@@ -27201,6 +27237,7 @@ vingrau.fr
 vinon-sur-verdon.fr
 vinsobres-mairie.fr
 vinssurcaramy.fr
+vinted.fr
 vinzelles-63.fr
 vinzelles71.fr
 vinzier.com
@@ -27429,6 +27466,7 @@ waville-mairie.fr
 wavranssurlaa.com
 wavrechainsousfaulx.fr
 wavrin.fr
+waze.com
 waziers.fr
 we-ker.org
 webou.net
@@ -27449,11 +27487,13 @@ westhoffen.com
 westhouse.info
 wettolsheim.fr
 weyersheim.fr
+whatsapp.com
 wickersheim-wilshausen.com
 wicquinghem.fr
 wicres.fr
 widensolen.fr
 wiencourtlequipee.fr
+wikipedia.org
 wildenstein.fr
 wildersbach.fr
 willems.fr
@@ -27528,6 +27568,7 @@ xonrupt.fr
 xouaxange.com
 xouaxange.fr
 xures.fr
+yahoo.com
 ychoux.fr
 ydes.fr
 yebles.fr
