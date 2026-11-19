@@ -32,7 +32,7 @@ L'entrée du classifieur est [`src/donnees/domaines-legitimes.txt`](../src/donne
 
 Les règles de sélection s'appliquent à toutes les sources : sur les 50 marques, six plateformes de `src/donnees/domaines-exclus.txt` (Google, Facebook, YouTube, Instagram, LinkedIn, X) et `e.leclerc` (nom de moins de 4 caractères) ne sont pas retenus.
 
-Pour ajouter une source : écrire `scripts/sources/<id>.ts`, la déclarer dans `donnees/sources.json` et dans `scripts/genere-les-domaines-legitimes.ts`, puis regénérer la liste et réentraîner le modèle d'essai.
+[`donnees/provenance-des-domaines.csv`](../donnees/provenance-des-domaines.csv) indique pour chaque domaine de la liste la ou les sources qui l'ont fourni (`domaine;sources`, sources séparées par `|`). Pour ajouter une source : écrire `scripts/sources/<id>.ts`, la déclarer dans `donnees/sources.json` et dans `scripts/genere-les-domaines-legitimes.ts`, puis regénérer la liste et réentraîner le modèle.
 
 | Étape | Fichier lu | Fichier produit |
 | --- | --- | --- |
@@ -50,7 +50,7 @@ Train, la prédiction locale et l'extension emploient la même recherche de cand
 
 ## Flux de l'entraînement
 
-Des sources publiques jusqu'au modèle embarqué. Les cylindres sont des fichiers, les rectangles des transformations (commande npm entre parenthèses). Sont versionnés : le manifeste des sources, le snapshot Adullact, le fichier des marques Médiamétrie, la liste légitime, la liste des plateformes exclues et le modèle exporté. `donnees-sources/` et `classifieur/resultats/` sont régénérables et ignorés par Git.
+Des sources publiques jusqu'au modèle embarqué. Les cylindres sont des fichiers, les rectangles des transformations (commande npm entre parenthèses). Sont versionnés : le manifeste des sources, le snapshot Adullact, le fichier des marques Médiamétrie, la liste légitime et sa provenance, la liste des plateformes exclues et le modèle exporté. `donnees-sources/` et `classifieur/resultats/` sont régénérables et ignorés par Git.
 
 ```mermaid
 flowchart TD
@@ -61,6 +61,7 @@ flowchart TD
     exclus[("src/donnees/domaines-exclus.txt<br/>plateformes à écarter")]
     filtre["Filtrage par source<br/>(genere:domaines)<br/>nom normalisable, hors suffixe privé,<br/>hors plateformes, étiquette de 4 caractères minimum"]
     liste[("src/donnees/domaines-legitimes.txt<br/>liste légitime versionnée")]
+    provenanceDesDomaines[("donnees/provenance-des-domaines.csv<br/>source ou sources de chaque domaine")]
 
     adullact -- "lit les URL, extrait le nom d'hôte" --> filtre
     dpnt -- "lit la colonne site_internet" --> filtre
@@ -68,6 +69,7 @@ flowchart TD
     exclus -- "écarte les plateformes" --> filtre
     manifeste -. "déclare les sources<br/>(vérifié par un test)" .-> filtre
     filtre -- "écrit les domaines retenus, triés" --> liste
+    filtre -- "écrit, pour chaque domaine,<br/>les sources qui l'ont fourni" --> provenanceDesDomaines
 
     generation["Génération des exemples<br/>(classifieur:generer)<br/>mutations synthétiques à partir de chaque domaine"]
     recherche["Recherche des 10 domaines<br/>de référence les plus proches<br/>puis calcul des 157 caractéristiques"]
