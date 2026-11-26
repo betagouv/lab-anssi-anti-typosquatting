@@ -11,10 +11,11 @@ const verdict = (severite: Verdict["severite"]): Verdict => ({
   scoreDeSuspicion: 0.9,
 });
 
-const analyse = (regles: Verdict | null): ResultatDeComparaison => ({
+const analyse = (regles: Verdict | null, nonVerifiable = false): ResultatDeComparaison => ({
   etat: "analyse",
   domaine: "connexion-securisee.com",
   regles,
+  nonVerifiable,
   modele: null,
 });
 
@@ -25,6 +26,21 @@ describe("La présentation du résultat dans la popup", () => {
     const presentation = presenteLeResultat(analyse(null), null);
     expect(presentation.type).toBe("success");
     expect(presentation.peutNaviguerQuandMeme).toBe(false);
+  });
+
+  it("annonce qu'une vérification est impossible pour un domaine très éloigné de la liste", () => {
+    const presentation = presenteLeResultat(analyse(null, true), null);
+    expect(presentation.type).toBe("info");
+    expect(presentation.titre).toBe("Vérification impossible");
+    expect(presentation.description).toContain("connexion-securisee.com");
+    expect(presentation.description).toContain("ne pouvons pas confirmer");
+    expect(presentation.details).toContainEqual({ libelle: "Couverture", valeur: "Hors de notre liste" });
+    expect(presentation.peutNaviguerQuandMeme).toBe(false);
+  });
+
+  it("préfère l'avertissement des règles à la vérification impossible", () => {
+    const presentation = presenteLeResultat(analyse(verdict("avertissement"), true), null);
+    expect(presentation.type).toBe("warning");
   });
 
   it("avertit sur un domaine suspect, sans proposer de passer outre", () => {

@@ -77,6 +77,21 @@ export const presenteLeResultat = (
     : [{ libelle: "Adresse bloquée", valeur: urlBloquee }];
   const modele = detailsDuModele(resultat.modele);
 
+  if (verdict === null && resultat.nonVerifiable) {
+    return {
+      type: "info",
+      titre: "Vérification impossible",
+      description: `${resultat.domaine} ne fait pas partie des sites publics que nous observons et ne ressemble à aucun d’eux : nous ne pouvons pas confirmer qu’il est légitime. Ce n’est ni un signe de danger, ni une garantie.`,
+      details: [
+        domaine,
+        { libelle: "Règles", valeur: "Aucune alerte" },
+        { libelle: "Couverture", valeur: "Hors de notre liste" },
+        ...modele,
+      ],
+      peutNaviguerQuandMeme: false,
+    };
+  }
+
   if (verdict === null) {
     return {
       type: "success",

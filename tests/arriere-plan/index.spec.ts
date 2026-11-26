@@ -283,6 +283,13 @@ describe("L'arrière-plan en mode page", () => {
       expect(modeleSeul.regles).toBeNull();
       expect(modeleSeul.modele?.decision).toBe("suspect");
 
+      const eloigne = await demandeLaComparaison("https://www.labanquep0stale.fr/");
+      if (eloigne.etat !== "analyse") throw new Error("Résultat inattendu.");
+      expect(eloigne.regles).toBeNull();
+      expect(eloigne.nonVerifiable).toBe(true);
+      expect(legitime.nonVerifiable).toBe(false);
+      expect(alerte.nonVerifiable).toBe(false);
+
       expect((await demandeLaComparaison("https://belley.free.fr/")).etat).toBe("hors-perimetre");
       expect((await demandeLaComparaison("about:blank")).etat).toBe("non-analysable");
     } finally {
