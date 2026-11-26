@@ -1,5 +1,5 @@
 import browser from "webextension-polyfill";
-import { analyseLUrl, type Verdict } from "../noyau/detection.ts";
+import { analyseLUrl, estNonVerifiable, type Verdict } from "../noyau/detection.ts";
 import type { IndexDeRecherche } from "../noyau/index-de-recherche.ts";
 import { normaliseLUrl } from "../noyau/normalisation.ts";
 import { litLesPoids, verifieLeModeleExporte, type ModeleExporte } from "../noyau/modele/calcul.ts";
@@ -11,7 +11,7 @@ export type ResultatDeComparaison =
   | { readonly etat: "non-analysable"; readonly domaine: null }
   | { readonly etat: "hors-perimetre"; readonly domaine: string }
   | { readonly etat: "analyse"; readonly domaine: string; readonly regles: Verdict | null;
-      readonly modele: PredictionDuModele | null };
+      readonly nonVerifiable: boolean; readonly modele: PredictionDuModele | null };
 
 let recherche: RechercheDeCandidats | null = null;
 let chargementDuModele: Promise<{ modele: ModeleExporte; poids: Float32Array }> | null = null;
@@ -58,5 +58,11 @@ export const compareLesMethodes = async (
   } catch (erreur) {
     console.error("Prédiction expérimentale indisponible", erreur);
   }
-  return { etat: "analyse", domaine: visite.domaineEnregistrable, regles, modele: prediction };
+  return {
+    etat: "analyse",
+    domaine: visite.domaineEnregistrable,
+    regles,
+    nonVerifiable: estNonVerifiable(index, domainesExclus, url),
+    modele: prediction,
+  };
 };

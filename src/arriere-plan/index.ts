@@ -2,7 +2,7 @@ import browser from "webextension-polyfill";
 
 import domainesExclusBruts from "../donnees/domaines-exclus.txt?raw";
 import domainesLegitimesBruts from "../donnees/domaines-legitimes.txt?raw";
-import { analyseLUrl, type Verdict } from "../noyau/detection.ts";
+import { analyseLUrl, estNonVerifiable, type Verdict } from "../noyau/detection.ts";
 import {
   construisLIndexDeRecherche,
   type IndexDeRecherche,
@@ -91,10 +91,16 @@ const etatDeLaPageDAlerte = (url: string): EtatDeLOnglet => ({
   domaineImite: new URL(url).searchParams.get("domaineImite") ?? "",
 });
 
+const etatDeLAnalyse = (url: string): EtatDeLOnglet =>
+  etatDuVerdict(
+    analyseLUrl(indexDesDomainesLegitimes(), domainesExclus, url),
+    estNonVerifiable(indexDesDomainesLegitimes(), domainesExclus, url),
+  );
+
 const etatDeLUrl = (url: string): EtatDeLOnglet => {
   if (estLaPageDAlerte(url)) return etatDeLaPageDAlerte(url);
   if (normaliseLUrl(url) === null) return ETAT_NEUTRE;
-  return etatDuVerdict(analyseLUrl(indexDesDomainesLegitimes(), domainesExclus, url));
+  return etatDeLAnalyse(url);
 };
 
 const afficheLEtatSansBloquer = async (idDeLOnglet: number, etat: EtatDeLOnglet): Promise<void> => {
@@ -139,7 +145,10 @@ const traiteLaNavigationAvantChargement = async (navigation: Navigation): Promis
   }
 
   const verdict = analyseLUrl(indexDesDomainesLegitimes(), domainesExclus, navigation.url);
-  const etat = etatDuVerdict(verdict);
+  const etat = etatDuVerdict(
+    verdict,
+    estNonVerifiable(indexDesDomainesLegitimes(), domainesExclus, navigation.url),
+  );
   etatPrevuParOnglet.set(navigation.tabId, { urlDemandee: navigation.url, etat });
 
   if (verdict?.severite !== "blocage") return;

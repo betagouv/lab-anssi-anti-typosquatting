@@ -5,12 +5,14 @@ import type { Verdict } from "../noyau/detection.ts";
 export type EtatDeLOnglet =
   | { readonly niveau: "neutre" }
   | { readonly niveau: "sain" }
+  | { readonly niveau: "non-verifiable" }
   | { readonly niveau: "suspicion" | "alerte"; readonly domaineImite: string };
 
 export const ETAT_NEUTRE: EtatDeLOnglet = { niveau: "neutre" };
 export const ETAT_SAIN: EtatDeLOnglet = { niveau: "sain" };
+export const ETAT_NON_VERIFIABLE: EtatDeLOnglet = { niveau: "non-verifiable" };
 
-const GRAVITE = { neutre: 0, sain: 1, suspicion: 2, alerte: 3 } as const;
+const GRAVITE = { neutre: 0, sain: 1, "non-verifiable": 2, suspicion: 3, alerte: 4 } as const;
 
 const ROUGE_ERREUR_DSFR = "#CE0500";
 const TITRE_PAR_DEFAUT = "Détection de typosquatting";
@@ -22,12 +24,16 @@ const icones = (dossier: string): Record<number, string> =>
 const DOSSIER_DES_ICONES = {
   neutre: "/icone",
   sain: "/icone/sain",
+  "non-verifiable": "/icone",
   suspicion: "/icone/suspicion",
   alerte: "/icone/alerte",
 } as const;
 
-export const etatDuVerdict = (verdict: Verdict | null): EtatDeLOnglet => {
-  if (verdict === null) return ETAT_SAIN;
+export const etatDuVerdict = (
+  verdict: Verdict | null,
+  nonVerifiable: boolean,
+): EtatDeLOnglet => {
+  if (verdict === null) return nonVerifiable ? ETAT_NON_VERIFIABLE : ETAT_SAIN;
   return {
     niveau: verdict.severite === "blocage" ? "alerte" : "suspicion",
     domaineImite: verdict.domaineImite,
@@ -42,6 +48,7 @@ const titreDeLEtat = (etat: EtatDeLOnglet): string => {
     return `Ce domaine ressemble à ${etat.domaineImite}`;
   }
   if (etat.niveau === "sain") return "Aucune imitation détectée";
+  if (etat.niveau === "non-verifiable") return "Domaine hors de notre liste : vérification impossible";
   return TITRE_PAR_DEFAUT;
 };
 

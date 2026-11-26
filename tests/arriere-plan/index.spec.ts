@@ -184,6 +184,24 @@ describe("L'arrière-plan en mode page", () => {
     expect(badge.setBadgeText).toHaveBeenLastCalledWith({ tabId: ONGLET, text: "" });
   });
 
+  it("affiche l'icône neutre sans badge sur un domaine très éloigné de la liste", async () => {
+    await navigueEtEngage("https://www.labanquep0stale.fr/");
+
+    expect(iconeAffichee()).toBe("/icone/16.png");
+    expect(badge.setBadgeText).toHaveBeenLastCalledWith({ tabId: ONGLET, text: "" });
+    expect(badge.setTitle).toHaveBeenLastCalledWith({
+      tabId: ONGLET,
+      title: "Domaine hors de notre liste : vérification impossible",
+    });
+  });
+
+  it("garde l'icône neutre quand un domaine non vérifiable redirige vers un domaine de la liste", async () => {
+    await navigueVers("https://www.labanquep0stale.fr/");
+    await engageLaNavigation("https://www.belley.fr/");
+
+    expect(iconeAffichee()).toBe("/icone/16.png");
+  });
+
   it("affiche l'icône orange sans badge sur un domaine suspect, sans bloquer", async () => {
     await navigueEtEngage("https://belley.com/");
 
@@ -282,6 +300,13 @@ describe("L'arrière-plan en mode page", () => {
       if (modeleSeul.etat !== "analyse") throw new Error("Résultat inattendu.");
       expect(modeleSeul.regles).toBeNull();
       expect(modeleSeul.modele?.decision).toBe("suspect");
+
+      const eloigne = await demandeLaComparaison("https://www.labanquep0stale.fr/");
+      if (eloigne.etat !== "analyse") throw new Error("Résultat inattendu.");
+      expect(eloigne.regles).toBeNull();
+      expect(eloigne.nonVerifiable).toBe(true);
+      expect(legitime.nonVerifiable).toBe(false);
+      expect(alerte.nonVerifiable).toBe(false);
 
       expect((await demandeLaComparaison("https://belley.free.fr/")).etat).toBe("hors-perimetre");
       expect((await demandeLaComparaison("about:blank")).etat).toBe("non-analysable");
