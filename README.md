@@ -82,6 +82,13 @@ exemples synthétiques ; son score est exploratoire. Les règles seules continue
 déclencher les blocages et avertissements. Le calcul est local et le modèle est chargé
 uniquement à l'ouverture de la fenêtre.
 
+Un domaine qu'aucune règle ne signale, absent de la liste et **très éloigné** de tous les
+domaines de la liste (meilleur score de proximité inférieur à 0,75, voir `src/noyau/proximite.ts`) reçoit
+l'état « Vérification impossible » : la popup dit que l'extension ne peut pas confirmer sa
+légitimité, l'icône reste neutre (bleue) et l'infobulle l'indique. Le vert est réservé aux
+autres cas. Cet état n'alerte pas : il évite de rassurer à tort sur un site que la liste ne
+couvre pas, comme `labanquep0stale.fr` quand `labanquepostale.fr` n'y figure pas.
+
 Trois invariants : un domaine de la liste légitime n'est jamais signalé, un domaine
 explicitement exclu non plus, et le domaine désigné comme imité appartient toujours à la
 liste.
@@ -141,6 +148,13 @@ la liste ne couvre pas encore.
   répondant en HTTP 200 dans le fichier de l'ADULLACT et les sites déclarés par les
   collectivités dans le jeu de l'ANCT, dont la joignabilité n'est pas testée. Un site légitime absent peut
   donc être signalé, d'où le lien de signalement sur l'interstitiel.
+- **« Vérification impossible » n'est affiché que pour les domaines très éloignés de la
+  liste.** Le seuil de 0,75 est posé à la main. Mesuré en retirant chaque domaine de la
+  liste : 46,6 % des domaines publics ont un voisin à 0,75 ou plus (souvent une commune aux
+  noms proches), donc 53,4 % recevraient ce message, et les autres garderaient « Aucune
+  imitation détectée » alors que la liste ne les couvre pas. Sur 29 domaines populaires hors
+  liste (amazon.com, github.com, labanquepostale.fr…), les 29 sont très éloignés. Ce seuil
+  est donc un compromis, et un voisin proche ne prouve pas qu'un domaine soit légitime.
 - **Les fautes de frappe sur les noms courts passent au travers.** La classe distance
   d'édition exige une étiquette d'au moins 8 caractères : `amelii.fr` n'est pas détecté.
   Abaisser ce seuil à 6 ferait passer les avertissements à tort de 8,2 % à 11,5 %.
