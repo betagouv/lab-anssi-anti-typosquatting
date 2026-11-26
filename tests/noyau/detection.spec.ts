@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { analyseLUrl } from "../../src/noyau/detection.ts";
+import { analyseLUrl, estNonVerifiable } from "../../src/noyau/detection.ts";
 import { construisLIndexDeRecherche } from "../../src/noyau/index-de-recherche.ts";
 
 const SANS_EXCLUSION = new Set<string>();
@@ -145,5 +145,44 @@ describe("L'analyse d'une URL", () => {
     it("se tait sur un nom trop court pour être discriminant", () => {
       expect(analyse(["belley.fr"], "https://bellry.fr/")).toBeNull();
     });
+  });
+});
+
+describe("La vérification impossible d'une URL", () => {
+  const LISTE = ["belley.fr", "impots.gouv.fr"];
+
+  const nonVerifiable = (
+    url: string,
+    domainesExclus = SANS_EXCLUSION,
+    domainesLegitimes = LISTE,
+  ) => estNonVerifiable(construisLIndexDeRecherche(domainesLegitimes), domainesExclus, url);
+
+  it("l'est pour un domaine très éloigné de la liste", () => {
+    expect(nonVerifiable("https://www.labanquep0stale.fr/")).toBe(true);
+  });
+
+  it("ne l'est pas pour un domaine de la liste", () => {
+    expect(nonVerifiable("https://www.belley.fr/mairie")).toBe(false);
+  });
+
+  it("ne l'est pas pour un domaine proche d'un domaine de la liste", () => {
+    expect(nonVerifiable("https://imp0t.gouv.fr/")).toBe(false);
+  });
+
+  it("ne l'est pas pour un domaine signalé par les règles", () => {
+    expect(nonVerifiable("https://impots.gouv.fr.connexion.com/")).toBe(false);
+  });
+
+  it("ne l'est pas sous un suffixe privé", () => {
+    expect(nonVerifiable("https://labanquepostale.wixsite.com/site")).toBe(false);
+  });
+
+  it("ne l'est pas pour un domaine explicitement exclu", () => {
+    expect(nonVerifiable("https://labanquepostale.fr/", new Set(["labanquepostale.fr"]))).toBe(false);
+  });
+
+  it("ne l'est pas pour une URL invalide ou hors du web", () => {
+    expect(nonVerifiable("pas une url")).toBe(false);
+    expect(nonVerifiable("about:blank")).toBe(false);
   });
 });
