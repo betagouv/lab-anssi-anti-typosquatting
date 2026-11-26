@@ -184,6 +184,24 @@ describe("L'arrière-plan en mode page", () => {
     expect(badge.setBadgeText).toHaveBeenLastCalledWith({ tabId: ONGLET, text: "" });
   });
 
+  it("affiche l'icône neutre sans badge sur un domaine très éloigné de la liste", async () => {
+    await navigueEtEngage("https://www.labanquep0stale.fr/");
+
+    expect(iconeAffichee()).toBe("/icone/16.png");
+    expect(badge.setBadgeText).toHaveBeenLastCalledWith({ tabId: ONGLET, text: "" });
+    expect(badge.setTitle).toHaveBeenLastCalledWith({
+      tabId: ONGLET,
+      title: "Domaine hors de notre liste : vérification impossible",
+    });
+  });
+
+  it("garde l'icône neutre quand un domaine non vérifiable redirige vers un domaine de la liste", async () => {
+    await navigueVers("https://www.labanquep0stale.fr/");
+    await engageLaNavigation("https://www.belley.fr/");
+
+    expect(iconeAffichee()).toBe("/icone/16.png");
+  });
+
   it("affiche l'icône orange sans badge sur un domaine suspect, sans bloquer", async () => {
     await navigueEtEngage("https://belley.com/");
 
